@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 7ca2e413acc4fac4bbadf0ddda4b3540
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - m_DefaultSprite: {instanceID: 0}
+  - m_DefaultGameObject: {instanceID: 0}
+  - flatGround: {fileID: 11400000, guid: ce67ee7aaf9df13479abb3d8464e421a, type: 2}
+  - elevatedGround: {fileID: 11400000, guid: 21edac5042e454242ae9331811b32a00, type: 2}
+  - water: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
