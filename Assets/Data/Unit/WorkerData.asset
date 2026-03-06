@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1290160dbfb49a686ba28d1684ad6f3, type: 3}
+  m_Name: WorkerData
+  m_EditorClassIdentifier: Assembly-CSharp::UnitData
+  unitName: Unit
+  icon: {fileID: -5948806968594788206, guid: 4c87a6310f87c47f1b785669e6191f00, type: 3}
+  maxHp: 100
+  moveSpeed: 3
+  maxEnergy: 20
+  harvestCooldown: 1.5
+  woodCost: 0
+  meatCost: 0
+  goldCost: 0

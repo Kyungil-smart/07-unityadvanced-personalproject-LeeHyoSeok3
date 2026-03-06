@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e80205533cf3a0943b837f92fdd38e5e, type: 3}
+  m_Name: Tower
+  m_EditorClassIdentifier: Assembly-CSharp::BuildingData
+  buildingName: Tower
+  buildingIcon: {fileID: 21300000, guid: 9150ff9a3f88646ddaf1ed327afa1315, type: 3}
+  avatarIcon: {fileID: 21300000, guid: 1ae77def86fe54f889da24e43f32ae32, type: 3}
+  nameIcon: {fileID: 21300000, guid: cb3b3a3fb40d24321a5c52c979672d33, type: 3}
+  prefab: {fileID: 1670869000199785584, guid: 6440be67a6f310d4f9e54aab28edc9a1, type: 3}
+  woodCost: 200
+  meatCost: 1
+  goldCost: 50
+  buildTime: 5
+  maintenanceGold: 0
+  maintenanceMeat: 0
+  unitPrefab: {fileID: 0}
+  spawnCountPerWave: 0
+  maxHp: 200

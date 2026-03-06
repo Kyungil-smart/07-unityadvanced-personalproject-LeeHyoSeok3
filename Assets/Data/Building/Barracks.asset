@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e80205533cf3a0943b837f92fdd38e5e, type: 3}
+  m_Name: Barracks
+  m_EditorClassIdentifier: Assembly-CSharp::BuildingData
+  buildingName: Barracks
+  buildingIcon: {fileID: 21300000, guid: 4140465d2d71b4a6a83a1be32f0a9880, type: 3}
+  avatarIcon: {fileID: 21300000, guid: 2334fa2b3b6b3492281b0993c123cfac, type: 3}
+  nameIcon: {fileID: 21300000, guid: cb3b3a3fb40d24321a5c52c979672d33, type: 3}
+  prefab: {fileID: 1670869000199785584, guid: 1cc4c3563a969fc4f86ff4d24806dd22, type: 3}
+  woodCost: 400
+  meatCost: 3
+  goldCost: 600
+  buildTime: 5
+  maintenanceGold: 0
+  maintenanceMeat: 0
+  unitPrefab: {fileID: 0}
+  spawnCountPerWave: 0
+  maxHp: 200

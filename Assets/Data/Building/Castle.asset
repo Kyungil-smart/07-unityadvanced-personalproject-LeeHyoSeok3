@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e80205533cf3a0943b837f92fdd38e5e, type: 3}
+  m_Name: Castle
+  m_EditorClassIdentifier: Assembly-CSharp::BuildingData
+  buildingName: Castle
+  buildingIcon: {fileID: 21300000, guid: 5fef2d88b09824faba4be40a870c347e, type: 3}
+  avatarIcon: {fileID: 0}
+  nameIcon: {fileID: 0}
+  prefab: {fileID: 2773574305500870550, guid: 9af8bd68b631308409a21885f36ce929, type: 3}
+  woodCost: 0
+  meatCost: 0
+  goldCost: 0
+  buildTime: 0
+  maintenanceGold: 0
+  maintenanceMeat: 0
+  unitPrefab: {fileID: 0}
+  spawnCountPerWave: 0
+  maxHp: 1000

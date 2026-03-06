@@ -11,18 +11,18 @@ TagManager:
   - 
   - Water
   - UI
+  - Ground_Floor1
+  - Ground_Floor2
+  - Ground_Floor3
   - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Unit_Floor1
+  - Unit_Floor2
+  - Unit_Floor3
+  - Stair
+  - StairPassing
+  - Wall_1
+  - Wall_2
+  - Building
   - 
   - 
   - 
@@ -41,8 +41,38 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: Deco
+  - name: BackGround
+    uniqueID: 1411366933
+    locked: 0
+  - name: Ground_1
+    uniqueID: 3064945243
+    locked: 0
+  - name: Shadow_1
+    uniqueID: 4013056609
+    locked: 0
+  - name: Ground_2
+    uniqueID: 10107537
+    locked: 0
+  - name: Shadow_2
+    uniqueID: 1281995827
+    locked: 0
+  - name: Ground_3
+    uniqueID: 730914363
+    locked: 0
+  - name: Stair
+    uniqueID: 669480655
+    locked: 0
+  - name: Floor1
     uniqueID: 2847543471
+    locked: 0
+  - name: Floor2
+    uniqueID: 3201444341
+    locked: 0
+  - name: Floor3
+    uniqueID: 3058551879
+    locked: 0
+  - name: UI
+    uniqueID: 96216977
     locked: 0
   m_RenderingLayers:
   - Default

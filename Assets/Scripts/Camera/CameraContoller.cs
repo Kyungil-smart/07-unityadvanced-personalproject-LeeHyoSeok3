@@ -101,9 +101,28 @@ public class CameraController : MonoBehaviour
 
     void Update()
     {
+        HandleFocus();
         HandleZoom();
         HandleWASD();
         HandleEdgeScroll();
+    }
+
+    void HandleFocus()
+    {
+        if (!_isFocusing) return;
+
+        transform.position = Vector3.Lerp(
+            transform.position,
+            _focusTarget,
+            Time.deltaTime * focusMoveSpeed
+        );
+
+        // 목표에 충분히 가까우면 종료
+        if (Vector3.Distance(transform.position, _focusTarget) < 0.01f)
+        {
+            transform.position = _focusTarget;
+            _isFocusing = false;
+        }
     }
 
     // -------------------------------------------------------
@@ -220,13 +239,45 @@ public class CameraController : MonoBehaviour
         if (dy > 0) dy *= Mathf.InverseLerp(screenH - edgeThickness, screenH, mousePos.y) + 0.3f;
 
         // 카메라 이동
-        Vector3 newPos = transform.position + new Vector3(dx, dy, 0f) * (scrollSpeed * Time.deltaTime);
+        Vector3 newPos = transform.position + new Vector3(dx, dy, 0f) * scrollSpeed * Time.deltaTime;
 
         // BG Color 범위 내로 클램프
         newPos.x = Mathf.Clamp(newPos.x, _minX, _maxX);
         newPos.y = Mathf.Clamp(newPos.y, _minY, _maxY);
 
         transform.position = newPos;
+    }
+
+    // -------------------------------------------------------
+    // 외부 호출 - 특정 위치로 카메라 이동 + 줌
+    // -------------------------------------------------------
+    [Header("포커스 이동")]
+    public float focusMoveSpeed = 8f;
+
+    private Vector3 _focusTarget;
+    private bool    _isFocusing;
+
+    public void CancelFocus() => _isFocusing = false;
+
+    public void FocusOn(Vector3 worldPos, float zoom = -1f)
+    {
+        // 줌 먼저 적용 후 bounds 재계산
+        if (zoom > 0f)
+        {
+            _targetZoom = Mathf.Clamp(zoom, minZoom, maxZoom);
+            _cam.orthographicSize = _targetZoom;
+        }
+
+        CalculateBounds();
+
+        Vector3 newPos = new Vector3(worldPos.x, worldPos.y, transform.position.z);
+        if (_boundsReady)
+        {
+            newPos.x = Mathf.Clamp(newPos.x, _minX, _maxX);
+            newPos.y = Mathf.Clamp(newPos.y, _minY, _maxY);
+        }
+        _focusTarget = newPos;
+        _isFocusing  = true;
     }
 
     // -------------------------------------------------------
