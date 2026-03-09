@@ -204,30 +204,28 @@ public class ActionBarUI : MonoBehaviour
             return;
         }
 
-        // 포커스된 노드를 우선 배치
-        var focusNode = GetFocusUI()?.SelectedNode;
-        if (focusNode != null && nodes.Contains(focusNode))
-        {
-            nodes.Remove(focusNode);
-            nodes.Insert(0, focusNode);
-        }
-
-        // 노드마다 워커 1명씩 할당
-        foreach (var node in nodes)
+        // 워커마다 가장 가까운 노드에 할당
+        foreach (var worker in idleWorkers)
         {
             if (assigned >= count) break;
-            if (node.IsFull) continue;
 
-            // 이 노드와 가장 가까운 유휴 워커 선택
-            idleWorkers.Sort((a, b) =>
-                Vector3.Distance(a.transform.position, node.transform.position)
-                .CompareTo(Vector3.Distance(b.transform.position, node.transform.position)));
+            // 이 워커와 가장 가까운 할당 가능한 노드 선택
+            ResourceNode nearestNode = null;
+            float minDist = float.MaxValue;
+            foreach (var node in nodes)
+            {
+                if (node.IsFull) continue;
+                float dist = Vector3.Distance(worker.transform.position, node.transform.position);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    nearestNode = node;
+                }
+            }
 
-            var worker = idleWorkers.Find(w => w.StateMachine.Is(UnitState.Idle));
-            if (worker == null) break;
+            if (nearestNode == null) break;
 
-            worker.AssignNode(node, type);
-            idleWorkers.Remove(worker);
+            worker.AssignNode(nearestNode, type);
             assigned++;
         }
 

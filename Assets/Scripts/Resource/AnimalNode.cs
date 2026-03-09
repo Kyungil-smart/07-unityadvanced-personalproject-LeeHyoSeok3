@@ -353,14 +353,7 @@ public class AnimalNode : ResourceNode
 
     protected override void OnNodeDepleted()
     {
-        // Dead 애니메이션 완료 후 비활성화는 애니메이션 이벤트 또는 코루틴으로 처리
-        StartCoroutine(DisableAfterDelay(1.5f));
-    }
-
-    System.Collections.IEnumerator DisableAfterDelay(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        gameObject.SetActive(false);
+        Destroy(gameObject);
     }
 
     protected override void OnNodeReset()

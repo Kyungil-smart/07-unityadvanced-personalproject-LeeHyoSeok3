@@ -134,8 +134,9 @@ public class WorkerUnit : UnitBase
 
         if (path != null && path.Count > 0)
         {
-            _path      = path;
-            _pathIndex = 0;
+            _path = path;
+            // path[0]은 현재 격자 셀 중심 - 이미 해당 셀 안에 있으므로 건너뜀
+            _pathIndex = path.Count > 1 ? 1 : 0;
         }
         else
         {
@@ -223,13 +224,13 @@ public class WorkerUnit : UnitBase
                 RequestPathTo(AssignedNode.transform.position);
             }
 
-            // 사거리 내 + 쿨타임 완료 → 공격
+            // 사거리 내 → 이동 중단 후 공격 또는 쿨타임 대기
             float dist = Vector3.Distance(transform.position, AssignedNode.transform.position);
-            if (dist <= huntingAttackRange && _huntingAttackTimer <= 0f)
+            if (dist <= huntingAttackRange)
             {
                 StopMove();
                 _path = null;
-                StateMachine.ChangeState(UnitState.Hunting);
+                StateMachine.ChangeState(_huntingAttackTimer <= 0f ? UnitState.Hunting : UnitState.HuntingIdle);
                 return;
             }
         }
@@ -267,7 +268,11 @@ public class WorkerUnit : UnitBase
             if (Vector3.Distance(transform.position, _lastCheckedPos) < STUCK_MOVE_THRESHOLD)
             {
                 Debug.LogWarning($"[WorkerUnit] {name} 정체 감지 → 경로 재설정");
-                RequestPathTo(_finalDestination);
+                // 사냥 추적 중에는 현재 동물 위치로 경로 재설정 (과거 위치 사용 방지)
+                Vector3 target = (State == UnitState.Hunting_Move && AssignedNode != null)
+                    ? AssignedNode.transform.position
+                    : _finalDestination;
+                RequestPathTo(target);
                 return;
             }
             _lastCheckedPos = transform.position;
