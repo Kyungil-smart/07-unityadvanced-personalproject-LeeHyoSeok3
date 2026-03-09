@@ -162,10 +162,31 @@ OnScorePenalty          // 점수 패널티
 
 ## 미구현 / TODO
 
+### 기존 미구현
 - **적 AI**: 이벤트/인프라 존재하나 적 유닛 AI 미구현
 - **전투 유닛**: ProductionBuilding 스폰은 있으나 전투 로직 없음
 - **점수 UI**: OnScorePenalty 이벤트 발행되나 표시 UI 없음
 - **방어 포인트 자동이동**: ProductionBuilding.cs 주석 참고 (todo 태그)
+
+### 신규 TODO 목록
+
+#### 게임플레이 로직
+- [ ] **워커 소환 조건**: Ready(GameState) 상태일 때만 워커 소환 가능하도록 제한
+- [ ] **Combat 진입 시 워커 Dead 처리**: Combat 페이즈 시작 시 모든 워커 유닛 Dead 상태로 전환
+- [ ] **Combat 진입 시 전투 유닛 소환**: Combat 페이즈 시작 시 전투 유닛 자동 소환
+
+#### 자원 노드
+- [ ] **자원 노드 재스폰**: Ready 페이즈 진입 시 모든 자원 노드 일정량 재스폰 (최대 재스폰 수치 ScriptableObject로 설정 가능하도록)
+- [ ] **TreeNode 고갈 시 Stump 스프라이트 교체**: 최대치 채집 완료 시 나무 그루터기(Stump) Sprite로 교체
+- [ ] **GoldNode 고갈 시 시각 처리**: 최대치 채집 완료 시 Sprite 채색 낮추고 애니메이션 정지
+
+#### 비주얼 이펙트
+- [ ] **유닛 Dead 시 먼지 이펙트**: 모든 유닛 사망 처리 시 먼지 파티클 Effect 생성
+
+#### 최적화
+- [ ] **어드레서블 적용**: Addressable Asset System 프로젝트 전반 적용
+- [ ] **오브젝트 풀링 적용**: 자주 생성/삭제되는 오브젝트(유닛, 이펙트, 드롭 자원 등)에 풀링 적용
+- [ ] **씬 배치 요소 최적화**: 현재 씬에서 Static Object 전환 가능한 요소 분류 및 적용 (조명 베이킹, Batching 등)
 
 ---
 
