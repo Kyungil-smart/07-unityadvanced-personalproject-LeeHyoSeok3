@@ -164,12 +164,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df529973b3e64c97bd14143eefd0b972, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TreeNode
+  _data: {fileID: 11400000, guid: fd207bfb2f486264e8fb6e424d3f1769, type: 2}
   resourceType: 0
-  maxAmount: 100
   currentAmount: 0
-  harvestAmountPerAction: 10
-  energyCostPerHarvest: 10
-  harvestDuration: 3
   droppedResourcePrefab: {fileID: 629410107844139497, guid: ce3e9e6ebb037bd499afd8914bf35be9, type: 3}
   stageSprites: []
   shakeAnimTrigger: Shake

@@ -58,6 +58,16 @@ public class WorkerAllocationPopup : MonoBehaviour
             PopupManager.Instance.Unregister(gameObject);
     }
 
+    /// <summary>팝업이 열린 상태에서 유휴 워커 수를 갱신한다. 0이면 팝업을 닫는다.</summary>
+    public void UpdateAvailable(int available)
+    {
+        if (!gameObject.activeSelf) return;
+        if (available <= 0) { Close(); return; }
+        _available = available;
+        _selected  = Mathf.Clamp(_selected, 1, _available);
+        RefreshUI();
+    }
+
     public void Open(int available, System.Action<int> onConfirm)
     {
         _available = Mathf.Max(1, available);

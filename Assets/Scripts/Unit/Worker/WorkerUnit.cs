@@ -413,7 +413,7 @@ public class WorkerUnit : UnitBase
         // 아직 낙하 중이면 Idle 대기 → 착지 후 OnDroppedResourceLanded() 호출됨
         if (!dropped.IsLanded)
         {
-            StateMachine.ChangeState(UnitState.Idle);
+            SetIdleAndNotify();
             return;
         }
 
@@ -560,7 +560,7 @@ public class WorkerUnit : UnitBase
     public void OnConstructionComplete()
     {
         _assignedConstruction = null;
-        StateMachine.ChangeState(UnitState.Idle);
+        SetIdleAndNotify();
         Debug.Log($"[WorkerUnit] {name} 건설 완료 → Idle");
     }
 
@@ -707,13 +707,21 @@ public class WorkerUnit : UnitBase
             AssignedNode = null;
         }
         ClearBuildAssignment();
-        StateMachine.ChangeState(UnitState.Idle);
+        SetIdleAndNotify();
     }
 
     void ClearBuildAssignment()
     {
         _assignedConstruction = null;
         _path = null;
+    }
+
+    // Idle 상태 전환 + UI 갱신 이벤트 발행 (죽은 워커는 제외)
+    void SetIdleAndNotify()
+    {
+        StateMachine.ChangeState(UnitState.Idle);
+        if (!IsDead)
+            EventBus.Publish(new OnWorkerBecameIdle { worker = this });
     }
 
     public override void TakeDamage(int damage) { }

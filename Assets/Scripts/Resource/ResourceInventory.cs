@@ -12,13 +12,8 @@ using UnityEngine;
 /// </summary>
 public class ResourceInventory : MonoBehaviour
 {
-    [Header("초기 자원량")]
-    public int initialWood = 0;
-    public int initialMeat = 0;
-    public int initialGold = 0;
-
-    [Header("고기 최대 적재량")]
-    public int meatCapacity = 50;
+    [Header("밸런싱 데이터")]
+    [SerializeField] private ResourceInventoryData _data;
 
     // 실제 보유량
     private Dictionary<ResourceType, int> _resources;
@@ -26,13 +21,15 @@ public class ResourceInventory : MonoBehaviour
     // 초기화 스냅샷 (전략 초기화용)
     private Dictionary<ResourceType, int> _initialSnapshot;
 
+    public int meatCapacity => _data != null ? _data.meatCapacity : 50;
+
     void Awake()
     {
         _resources = new Dictionary<ResourceType, int>
         {
-            { ResourceType.Wood, initialWood },
-            { ResourceType.Meat, initialMeat },
-            { ResourceType.Gold, initialGold }
+            { ResourceType.Wood, _data != null ? _data.initialWood : 0 },
+            { ResourceType.Meat, _data != null ? _data.initialMeat : 0 },
+            { ResourceType.Gold, _data != null ? _data.initialGold : 0 }
         };
 
         SaveSnapshot();

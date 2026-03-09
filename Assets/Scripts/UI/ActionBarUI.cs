@@ -32,6 +32,9 @@ public class ActionBarUI : MonoBehaviour
         huntingButton?.onClick.AddListener(() => OnResourceButtonClick(ResourceType.Meat));
 
         EventBus.Subscribe<OnPhaseChanged>(OnPhaseChanged);
+        EventBus.Subscribe<OnWorkerBecameIdle>(OnWorkerBecameIdle);
+        EventBus.Subscribe<OnUnitDied>(OnUnitDied);
+        EventBus.Subscribe<OnResourceChanged>(OnResourceChanged);
         RefreshButtons();
         RefreshResourceButtons();
     }
@@ -39,6 +42,9 @@ public class ActionBarUI : MonoBehaviour
     void OnDestroy()
     {
         EventBus.Unsubscribe<OnPhaseChanged>(OnPhaseChanged);
+        EventBus.Unsubscribe<OnWorkerBecameIdle>(OnWorkerBecameIdle);
+        EventBus.Unsubscribe<OnUnitDied>(OnUnitDied);
+        EventBus.Unsubscribe<OnResourceChanged>(OnResourceChanged);
     }
 
     public void OnPopupClosedExternally()
@@ -49,6 +55,65 @@ public class ActionBarUI : MonoBehaviour
     }
 
     void OnPhaseChanged(OnPhaseChanged e) => RefreshButtons();
+
+    // Meat 적재량이 꽉 차면 사냥 버튼 비활성화
+    void OnResourceChanged(OnResourceChanged e)
+    {
+        if (e.type == ResourceType.Meat) RefreshResourceButtons();
+    }
+
+    void OnWorkerBecameIdle(OnWorkerBecameIdle e)
+    {
+        RefreshResourceButtons();
+        RefreshAllocationPopup();
+    }
+
+    void OnUnitDied(OnUnitDied e)
+    {
+        RefreshResourceButtons();
+        RefreshAllocationPopup();
+    }
+
+    // 팝업이 열려있으면 유휴 워커 수를 다시 계산해 반영
+    void RefreshAllocationPopup()
+    {
+        if (allocationPopup == null || !allocationPopup.gameObject.activeSelf) return;
+        if (_currentFocusType == null) return;
+        allocationPopup.UpdateAvailable(GetMaxAllocatable(_currentFocusType.Value));
+    }
+
+    // 실제 할당 가능한 최대 워커 수
+    // = Min(유휴 워커, 빈 노드 수) 이며, Meat는 남은 적재량 기반으로 추가 제한
+    int GetMaxAllocatable(ResourceType type)
+    {
+        var nodes  = GetAvailableNodes(type);
+        int byNode = Mathf.Min(GetIdleWorkerCount(), nodes.Count);
+
+        if (type != ResourceType.Meat) return byNode;
+
+        // Meat 전용: 이미 사냥 중인 워커가 가져올 고기를 감안한 실질 여유량으로 제한
+        if (!ServiceLocator.Has<ResourceInventory>()) return 0;
+        var inv       = ServiceLocator.Get<ResourceInventory>();
+
+        int harvestPerWorker = nodes.Count > 0 ? nodes[0].harvestAmountPerAction : 0;
+        if (harvestPerWorker <= 0) return 0;
+
+        // 현재 사냥 중인 워커 수 (AssignedNode가 AnimalNode인 경우)
+        int activeHunters = 0;
+        if (ServiceLocator.Has<WorkerAssigner>())
+        {
+            foreach (var w in ServiceLocator.Get<WorkerAssigner>().GetAllWorkers())
+                if (w != null && w.AssignedNode is AnimalNode) activeHunters++;
+        }
+
+        // 실질 여유량 = 총 적재량 - 현재 보유량 - (사냥 중 워커가 가져올 고기)
+        int effectiveRemaining = inv.meatCapacity - inv.Get(ResourceType.Meat)
+                                 - activeHunters * harvestPerWorker;
+        if (effectiveRemaining <= 0) return 0;
+
+        int byCapacity = effectiveRemaining / harvestPerWorker;
+        return Mathf.Min(byNode, byCapacity);
+    }
 
     void RefreshButtons()
     {
@@ -69,13 +134,19 @@ public class ActionBarUI : MonoBehaviour
     {
         bool isPrepare = PhaseManager.Instance != null && PhaseManager.Instance.IsPrepare;
 
-        bool hasTree   = HasNode<TreeNode>();
-        bool hasGold   = HasNode<GoldNode>();
-        bool hasAnimal = HasNode<AnimalNode>();
+        if (loggingButton != null)
+            loggingButton.interactable = isPrepare && GetMaxAllocatable(ResourceType.Wood) > 0;
+        if (miningButton != null)
+            miningButton.interactable  = isPrepare && GetMaxAllocatable(ResourceType.Gold) > 0;
+        if (huntingButton != null)
+            huntingButton.interactable = isPrepare && GetMaxAllocatable(ResourceType.Meat) > 0;
+    }
 
-        if (loggingButton != null) loggingButton.interactable = isPrepare && hasTree;
-        if (miningButton  != null) miningButton.interactable  = isPrepare && hasGold;
-        if (huntingButton != null) huntingButton.interactable = isPrepare && hasAnimal;
+    bool IsMeatFull()
+    {
+        if (!ServiceLocator.Has<ResourceInventory>()) return false;
+        var inv = ServiceLocator.Get<ResourceInventory>();
+        return inv.Get(ResourceType.Meat) >= inv.meatCapacity;
     }
 
     bool HasNode<T>() where T : ResourceNode
@@ -158,8 +229,8 @@ public class ActionBarUI : MonoBehaviour
 
         if (allocationPopup == null) return;
 
-        // 할당 가능한 유휴 워커 수 계산
-        int available = GetIdleWorkerCount();
+        // 할당 가능한 워커 수 (유휴 워커 수와 빈 노드 수 중 작은 값)
+        int available = GetMaxAllocatable(type);
         if (available <= 0)
         {
             Debug.LogWarning("[ActionBarUI] 할당 가능한 워커 없음");
@@ -193,6 +264,13 @@ public class ActionBarUI : MonoBehaviour
         if (idleWorkers.Count == 0)
         {
             Debug.LogWarning("[ActionBarUI] 유휴 워커 없음");
+            return;
+        }
+
+        // Meat 적재량 초과 방지 (확인 버튼 누르는 시점 재검사)
+        if (type == ResourceType.Meat && IsMeatFull())
+        {
+            Debug.LogWarning("[ActionBarUI] 고기 적재량이 가득 찼습니다");
             return;
         }
 

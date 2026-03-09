@@ -194,27 +194,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6dc8a67836304026a6d6351850178800, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AnimalNode
+  _data: {fileID: 11400000, guid: 112f43100e8b96542974abaa816a64c3, type: 2}
   resourceType: 1
-  maxAmount: 100
   currentAmount: 0
-  harvestAmountPerAction: 10
-  energyCostPerHarvest: 10
-  harvestDuration: 1
   droppedResourcePrefab: {fileID: 4761014708134887885, guid: bbf3565af1acc77439d274633c6a8b22, type: 3}
-  wanderRadius: 3
-  wanderIntervalMin: 3
-  wanderIntervalMax: 6
-  moveSpeed: 1
-  arriveThreshold: 0.08
-  grassIntervalMin: 2
-  grassIntervalMax: 6
-  grassAnimDuration: 1.2
   flashColor: {r: 1, g: 0.57924527, b: 0.57924527, a: 1}
   flashDuration: 0.1
-  huntDamage: 1
-  maxHp: 3
-  fleeSpeedMultiplier: 2.5
-  detectionRange: 3
   paramIsWalking: IsWalking
   paramIsGrassing: IsGrassing
   stretchAmount: 1.3

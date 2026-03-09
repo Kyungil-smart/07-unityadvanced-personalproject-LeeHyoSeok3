@@ -10,20 +10,22 @@
 [RequireComponent(typeof(Collider2D))]
 public abstract class ResourceNode : MonoBehaviour
 {
+    [Header("밸런싱 데이터")]
+    [SerializeField] protected ResourceNodeData _data;
+
     [Header("자원 설정")]
     public ResourceType resourceType;
-    public int maxAmount = 100;
     public int currentAmount;
 
     [Header("채집 설정")]
-    [Tooltip("1회 채집 시 획득량")]
-    public int   harvestAmountPerAction = 10;
-    [Tooltip("채집 1회당 소모되는 일꾼 에너지")]
-    public int   energyCostPerHarvest   = 10;
-    [Tooltip("채집 완료까지 걸리는 시간 (초)")]
-    public float harvestDuration        = 3f;
     [Tooltip("채집 완료 후 스폰할 DroppedResource 프리팹")]
     public GameObject droppedResourcePrefab;
+
+    // 밸런싱 값 프로퍼티 (_data 우선, 없으면 기본값 폴백)
+    public int   maxAmount              => _data != null ? _data.maxAmount              : 100;
+    public int   harvestAmountPerAction => _data != null ? _data.harvestAmountPerAction : 10;
+    public int   energyCostPerHarvest   => _data != null ? _data.energyCostPerHarvest   : 10;
+    public float harvestDuration        => _data != null ? _data.harvestDuration        : 3f;
 
     // 하나의 노드에 워커 1명만 허용
     private WorkerUnit _assignedWorker;

@@ -68,6 +68,7 @@ public struct OnResourceNodeClicked     { public ResourceNode node; }
 // --- 일꾼 ---
 public struct OnWorkerAssigned          { public WorkerUnit worker; public ResourceNode node; }
 public struct OnWorkerEnergyDepleted    { public WorkerUnit worker; }
+public struct OnWorkerBecameIdle        { public WorkerUnit worker; }
 
 // --- 건물 ---
 public struct OnBuildingPlaced          { public BuildingBase building; }

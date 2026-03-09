@@ -2,28 +2,26 @@
 
 public class AnimalNode : ResourceNode
 {
-    [Header("배회 설정")]
-    public float wanderRadius       = 3f;
-    public float wanderIntervalMin  = 3f;
-    public float wanderIntervalMax  = 6f;
-    public float moveSpeed          = 1f;
-    public float arriveThreshold    = 0.08f;
+    // AnimalNodeData로 캐스팅해 동물 전용 수치를 읽는다
+    private AnimalNodeData AnimalData => _data as AnimalNodeData;
 
-    [Header("Grass 애니메이션 주기")]
-    public float grassIntervalMin   = 6f;
-    public float grassIntervalMax   = 12f;
-    public float grassAnimDuration  = 1.2f;
+    // 밸런싱 프로퍼티 (AnimalNodeData 우선, 없으면 기본값 폴백)
+    private float WanderRadius       => AnimalData != null ? AnimalData.wanderRadius       : 3f;
+    private float WanderIntervalMin  => AnimalData != null ? AnimalData.wanderIntervalMin  : 3f;
+    private float WanderIntervalMax  => AnimalData != null ? AnimalData.wanderIntervalMax  : 6f;
+    private float MoveSpeed          => AnimalData != null ? AnimalData.moveSpeed          : 1f;
+    private float ArriveThreshold    => AnimalData != null ? AnimalData.arriveThreshold    : 0.08f;
+    private float GrassIntervalMin   => AnimalData != null ? AnimalData.grassIntervalMin   : 6f;
+    private float GrassIntervalMax   => AnimalData != null ? AnimalData.grassIntervalMax   : 12f;
+    private float GrassAnimDuration  => AnimalData != null ? AnimalData.grassAnimDuration  : 1.2f;
+    private int   HuntDamage         => AnimalData != null ? AnimalData.huntDamage         : 1;
+    private int   MaxHp              => AnimalData != null ? AnimalData.maxHp              : 1;
+    private float FleeSpeedMultiplier => AnimalData != null ? AnimalData.fleeSpeedMultiplier : 2.5f;
+    private float DetectionRange     => AnimalData != null ? AnimalData.detectionRange     : 3f;
 
-    [Header("피격 점멸")]
-    public Color  flashColor    = Color.red;
-    public float  flashDuration = 0.1f;
-    [Tooltip("워커가 주는 데미지 (1이면 1회 공격으로 사망)")]
-    public int   huntDamage         = 1;
-    public int   maxHp              = 1;
-    [Tooltip("워커 감지 후 도망치는 속도 배율")]
-    public float fleeSpeedMultiplier = 2.5f;
-    [Tooltip("워커 감지 거리")]
-    public float detectionRange     = 3f;
+    [Header("피격 점멸 (시각 효과)")]
+    public Color flashColor    = Color.red;
+    public float flashDuration = 0.1f;
 
     [Header("Animator 파라미터 이름")]
     public string paramIsWalking    = "IsWalking";
@@ -51,7 +49,7 @@ public class AnimalNode : ResourceNode
         _originPosition = transform.position;
         _targetPosition = transform.position;
         _rb         = GetComponent<Rigidbody2D>();
-        _currentHp     = maxHp;
+        _currentHp     = MaxHp;
         _originalScale = transform.localScale;
 
         if (_rb == null)
@@ -86,7 +84,7 @@ public class AnimalNode : ResourceNode
         if (_grassTimer <= 0f) { EnterGrass(); return; }
         if (_wanderTimer <= 0f)
         {
-            Vector2 rand    = Random.insideUnitCircle * wanderRadius;
+            Vector2 rand    = Random.insideUnitCircle * WanderRadius;
             _targetPosition = _originPosition + new Vector3(rand.x, rand.y, 0f);
             EnterWalk();
         }
@@ -102,12 +100,12 @@ public class AnimalNode : ResourceNode
     {
         float dist = Vector3.Distance(transform.position, _targetPosition);
 
-        if (dist > arriveThreshold)
+        if (dist > ArriveThreshold)
         {
             Vector2 dir     = (_targetPosition - transform.position).normalized;
             Vector2 nextPos = _rb != null
-                ? _rb.position + dir * moveSpeed * Time.fixedDeltaTime
-                : (Vector2)transform.position + dir * moveSpeed * Time.deltaTime;
+                ? _rb.position + dir * MoveSpeed * Time.fixedDeltaTime
+                : (Vector2)transform.position + dir * MoveSpeed * Time.deltaTime;
 
             if (_rb != null)
                 _rb.MovePosition(nextPos);
@@ -124,7 +122,7 @@ public class AnimalNode : ResourceNode
                 if (moved < STUCK_THRESHOLD)
                 {
                     // 막힘 감지 → 새 목적지 선택 후 계속 Walk
-                    Vector2 rand    = Random.insideUnitCircle * wanderRadius;
+                    Vector2 rand    = Random.insideUnitCircle * WanderRadius;
                     _targetPosition = _originPosition + new Vector3(rand.x, rand.y, 0f);
                 }
                 _lastPosition = transform.position;
@@ -164,7 +162,7 @@ public class AnimalNode : ResourceNode
     {
         if (_state != AnimalState.Idle) return;
         _state         = AnimalState.Grass;
-        _grassEndTimer = grassAnimDuration;
+        _grassEndTimer = GrassAnimDuration;
         SetAnimator(true, false);
     }
 
@@ -176,10 +174,10 @@ public class AnimalNode : ResourceNode
     }
 
     void ResetWanderTimer() =>
-        _wanderTimer = Random.Range(wanderIntervalMin, wanderIntervalMax);
+        _wanderTimer = Random.Range(WanderIntervalMin, WanderIntervalMax);
 
     void ResetGrassTimer() =>
-        _grassTimer = Random.Range(grassIntervalMin, grassIntervalMax);
+        _grassTimer = Random.Range(GrassIntervalMin, GrassIntervalMax);
 
     void FlipByDirection(float dirX)
     {
@@ -199,7 +197,7 @@ public class AnimalNode : ResourceNode
         // 가장 가까운 워커 감지
         var workers = Object.FindObjectsByType<WorkerUnit>(FindObjectsSortMode.None);
         WorkerUnit nearest = null;
-        float minDist = detectionRange;
+        float minDist = DetectionRange;
 
         foreach (var w in workers)
         {
@@ -212,12 +210,12 @@ public class AnimalNode : ResourceNode
 
         // 워커 반대 방향으로 도망
         Vector3 fleeDir = (transform.position - nearest.transform.position).normalized;
-        _targetPosition = transform.position + fleeDir * wanderRadius;
+        _targetPosition = transform.position + fleeDir * WanderRadius;
         FlipByDirection(fleeDir.x);
 
         Vector2 nextPos = _rb != null
-            ? _rb.position + (Vector2)fleeDir * moveSpeed * fleeSpeedMultiplier * Time.fixedDeltaTime
-            : (Vector2)transform.position + (Vector2)fleeDir * moveSpeed * fleeSpeedMultiplier * Time.deltaTime;
+            ? _rb.position + (Vector2)fleeDir * MoveSpeed * FleeSpeedMultiplier * Time.fixedDeltaTime
+            : (Vector2)transform.position + (Vector2)fleeDir * MoveSpeed * FleeSpeedMultiplier * Time.deltaTime;
 
         if (_rb != null) _rb.MovePosition(nextPos);
         else             transform.position = nextPos;
@@ -229,7 +227,7 @@ public class AnimalNode : ResourceNode
     {
         if (_isDead) return;
         _huntingWorker = attacker;
-        _currentHp    -= huntDamage;
+        _currentHp    -= HuntDamage;
 
         // 점멸 + 스트레치 효과
         if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);

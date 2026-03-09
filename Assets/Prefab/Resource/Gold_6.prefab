@@ -164,12 +164,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc453d52abe049e0acd5a4b3dc8ff97b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GoldNode
+  _data: {fileID: 11400000, guid: 876834b43df701248bb322f3647e8385, type: 2}
   resourceType: 0
-  maxAmount: 100
   currentAmount: 0
-  harvestAmountPerAction: 10
-  energyCostPerHarvest: 10
-  harvestDuration: 3
   droppedResourcePrefab: {fileID: 7519775586659422552, guid: ab067f4db2af4244a9c449f8ebcc427f, type: 3}
   depletedSprite: {fileID: 0}
   mineParticle: {fileID: 0}
