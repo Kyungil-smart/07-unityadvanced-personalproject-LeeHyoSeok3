@@ -17,6 +17,8 @@ public class WorkerUnit : UnitBase
 
     private BuildingConstruction _assignedConstruction;
     public  BuildingConstruction AssignedConstruction => _assignedConstruction;
+    // 수거 대기 중인 DroppedResource 여부 (건설 배정 제외 판단에 사용)
+    public  bool                 HasPendingDropped     => _pendingDropped != null;
     private float                _harvestTimer;
 
     // 자원 회수
@@ -712,7 +714,12 @@ public class WorkerUnit : UnitBase
 
     void ClearBuildAssignment()
     {
-        _assignedConstruction = null;
+        // 배정된 건물에 워커 해제 알림 → 건물이 새 워커를 다시 탐색할 수 있도록
+        if (_assignedConstruction != null)
+        {
+            _assignedConstruction.SetWorkerAssigned(false);
+            _assignedConstruction = null;
+        }
         _path = null;
     }
 
