@@ -175,5 +175,7 @@ MonoBehaviour:
     m_EditorAssetChanged: 0
   droppedResourcePrefab: {fileID: 629410107844139497, guid: ce3e9e6ebb037bd499afd8914bf35be9, type: 3}
   stageSprites: []
+  stumpSprite: {fileID: 21300000, guid: e69d4329a5c024684ba584f285d76c98, type: 3}
+  fallDuration: 1
   shakeAnimTrigger: Shake
   fallAnimTrigger: Fall

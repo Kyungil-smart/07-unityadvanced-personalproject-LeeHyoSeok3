@@ -44,6 +44,10 @@ public class WorkerUnit : UnitBase
     private float _huntingAttackTimer;
     private float _huntingPathRefreshTimer;
 
+    // Logging_Idle / Mining_Idle: async 스폰 콜백 미착 시 안전 복귀 타이머
+    private float _dropWaitSafetyTimer;
+    private const float DROP_WAIT_TIMEOUT = 10f;
+
     // 정체 감지
     private Vector3              _lastCheckedPos;
     private float                _stuckTimer;
@@ -86,7 +90,9 @@ public class WorkerUnit : UnitBase
             case UnitState.Mining:
             case UnitState.Hunting:
             case UnitState.HuntingIdle: UpdateHarvest(); break;
-            case UnitState.Build:   UpdateBuild();   break;
+            case UnitState.Build:       UpdateBuild();   break;
+            case UnitState.Logging_Idle:
+            case UnitState.Mining_Idle: UpdateDropWait(); break;
         }
 
         UpdateStairLayer();
@@ -197,7 +203,17 @@ public class WorkerUnit : UnitBase
     // -------------------------------------------------------
     public void AssignConstruction(BuildingConstruction construction)
     {
-        ClearAssignment();
+        // ClearAssignment() 대신 직접 해제 — SetIdleAndNotify() 호출 금지
+        // ClearAssignment()는 내부에서 OnWorkerBecameIdle 이벤트를 발행하는데,
+        // 이 시점에 _assignedConstruction이 아직 null이라서 다른 BuildingConstruction이
+        // 같은 워커를 중복 배정하는 재귀 버그가 발생함
+        if (AssignedNode != null)
+        {
+            AssignedNode.UnregisterWorker();
+            AssignedNode = null;
+        }
+        ClearBuildAssignment(); // _workerAssigned 리셋은 여기서 처리됨
+
         _assignedConstruction = construction;
 
         Vector3 arrivalPos = construction.GetArrivalPosition(transform.position);
@@ -412,10 +428,18 @@ public class WorkerUnit : UnitBase
     {
         _pendingDropped = dropped;
 
-        // 아직 낙하 중이면 Idle 대기 → 착지 후 OnDroppedResourceLanded() 호출됨
+        // 아직 낙하 중이면 전용 대기 상태로 전환 → 착지 후 OnDroppedResourceLanded() 호출됨
+        // Idle 대신 전용 상태를 사용해 OnWorkerBecameIdle 이벤트가 오발하지 않도록 함
         if (!dropped.IsLanded)
         {
-            SetIdleAndNotify();
+            UnitState waitState = _carryingType switch
+            {
+                ResourceType.Wood => UnitState.Logging_Idle,
+                ResourceType.Gold => UnitState.Mining_Idle,
+                ResourceType.Meat => UnitState.HuntingIdle, // 사냥은 HuntingIdle 재활용
+                _                 => UnitState.Idle
+            };
+            StateMachine.ChangeState(waitState);
             return;
         }
 
@@ -473,31 +497,60 @@ public class WorkerUnit : UnitBase
 
     void UpdateHarvest()
     {
-        if (AssignedNode == null || AssignedNode.IsDeplete)
-        { ClearAssignment(); return; }
-
-        // Hunting 중: 애니메이션이 끝나면 OnHuntingAnimEnd()가 Hunting_Move로 전환
-        if (State == UnitState.Hunting) return;
-
-        // HuntingIdle 안전장치: 혹시 진입했다면 쿨타임 차감 후 추적 재개
-        if (State == UnitState.HuntingIdle)
+        switch (State)
         {
-            _huntingAttackTimer -= Time.deltaTime;
-            if (_huntingAttackTimer <= 0f)
-            {
-                _huntingPathRefreshTimer = 0f;
-                RequestPathTo(AssignedNode.transform.position);
-                StateMachine.ChangeState(UnitState.Hunting_Move);
-            }
+            case UnitState.Hunting:     UpdateHuntingAttack(); break;
+            case UnitState.HuntingIdle: UpdateHuntingIdle();   break;
+            default:                    UpdateLoggingMining(); break;
+        }
+    }
+
+    // 사냥 공격 — 상태 전환은 Animation Event(OnHuntingHit / OnHuntingAnimEnd)가 담당
+    void UpdateHuntingAttack() { }
+
+    // HuntingIdle — 동물 생사 여부에 따라 두 가지 모드로 분기
+    void UpdateHuntingIdle()
+    {
+        // 동물 사망 → DroppedResource 착지 대기 모드
+        if (AssignedNode == null)
+        {
+            UpdateDropWait();
             return;
         }
+
+        // 동물 생존 → 공격 쿨타임 대기 후 추적 재개
+        _huntingAttackTimer -= Time.deltaTime;
+        if (_huntingAttackTimer <= 0f)
+        {
+            _huntingPathRefreshTimer = 0f;
+            RequestPathTo(AssignedNode.transform.position);
+            StateMachine.ChangeState(UnitState.Hunting_Move);
+        }
+    }
+
+    // 벌목 / 채광 타이머 처리
+    void UpdateLoggingMining()
+    {
+        if (AssignedNode == null || AssignedNode.IsDeplete)
+        { ClearAssignment(); return; }
 
         _harvestTimer += Time.deltaTime;
         if (_harvestTimer < AssignedNode.harvestDuration) return;
 
         _harvestTimer = 0f;
 
-        // 벌목 / 채광: 채집 완료 → 현장에 DroppedResource 스폰
+        // CompleteHarvest() 호출 전에 전용 대기 상태로 전환
+        // → 다음 프레임에 UpdateLoggingMining()이 재진입하지 않도록 차단
+        // → AssignedNode = null 이후 ClearAssignment() → SetIdleAndNotify() 오발 방지
+        UnitState preWaitState = _carryingType switch
+        {
+            ResourceType.Wood => UnitState.Logging_Idle,
+            ResourceType.Gold => UnitState.Mining_Idle,
+            _                 => UnitState.Idle
+        };
+        StateMachine.ChangeState(preWaitState);
+
+        // CompleteHarvest 내부에서 MoveToDropped() 호출 → _pendingDropped 설정 및 상태 재전환
         AssignedNode.CompleteHarvest(this);
         AssignedNode.UnregisterWorker();
         AssignedNode = null;
@@ -522,8 +575,14 @@ public class WorkerUnit : UnitBase
         if (State != UnitState.Hunting) return;
         _huntingAttackTimer = huntingAttackCooldown; // 쿨타임 시작
 
-        // 동물이 죽었으면 추적 중단
-        if (AssignedNode == null || AssignedNode.IsDeplete) return;
+        // 동물이 죽었으면 DroppedResource 착지 대기
+        // HuntingIdle을 재활용 — UpdateHarvest()에서 AssignedNode == null 여부로 분기
+        // async 스폰의 경우 이 시점에 _pendingDropped가 아직 null일 수 있음
+        if (AssignedNode == null || AssignedNode.IsDeplete)
+        {
+            StateMachine.ChangeState(UnitState.HuntingIdle);
+            return;
+        }
 
         // 추적 재개
         _huntingPathRefreshTimer = 0f;
@@ -535,6 +594,27 @@ public class WorkerUnit : UnitBase
     {
         if (_assignedConstruction == null || _assignedConstruction.IsComplete)
             ClearBuildAssignment();
+    }
+
+    // Logging_Idle / Mining_Idle 대기 상태 — DroppedResource 착지 콜백 대기
+    void UpdateDropWait()
+    {
+        if (_pendingDropped != null)
+        {
+            // 콜백 수신 완료 — 타이머 리셋 (MoveToDropped/OnDroppedResourceLanded 에서 상태 전환됨)
+            _dropWaitSafetyTimer = 0f;
+            return;
+        }
+
+        // async 스폰 콜백이 아직 미착일 수 있으므로 즉시 전환하지 않음
+        // 일정 시간(DROP_WAIT_TIMEOUT)이 지나도 콜백이 오지 않으면 안전하게 Idle로 복귀
+        _dropWaitSafetyTimer += Time.deltaTime;
+        if (_dropWaitSafetyTimer >= DROP_WAIT_TIMEOUT)
+        {
+            _dropWaitSafetyTimer = 0f;
+            Debug.LogWarning($"[WorkerUnit] {name} DroppedResource 콜백 타임아웃 → Idle 복귀");
+            SetIdleAndNotify();
+        }
     }
 
     // -------------------------------------------------------
@@ -573,7 +653,9 @@ public class WorkerUnit : UnitBase
         "IsMove",
         "IsBuild",
         "IsLogging",
+        "IsLoggingIdle",
         "IsMining",
+        "IsMiningIdle",
         "IsHunting",
         "IsHuntingIdle",
         "IsBuild_Move",
@@ -670,8 +752,25 @@ public class WorkerUnit : UnitBase
                 SetAnimState("IsHunting");
                 break;
             case UnitState.HuntingIdle:
+                _dropWaitSafetyTimer = 0f; // 안전 타이머 리셋 (drop 대기 모드 진입 시 사용)
                 SetCollider(true);
                 SetAnimState("IsHuntingIdle");
+                break;
+
+            case UnitState.Logging_Idle:
+                _rb.mass = _defaultMass;
+                _dropWaitSafetyTimer = 0f; // 안전 타이머 리셋
+                SetCollider(true);
+                StopMove();
+                SetAnimState("IsLoggingIdle");
+                break;
+
+            case UnitState.Mining_Idle:
+                _rb.mass = _defaultMass;
+                _dropWaitSafetyTimer = 0f; // 안전 타이머 리셋
+                SetCollider(true);
+                StopMove();
+                SetAnimState("IsMiningIdle");
                 break;
 
             case UnitState.Build:

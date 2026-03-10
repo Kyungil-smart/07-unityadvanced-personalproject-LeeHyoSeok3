@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7bd6a551e0be01b45989f7ab53507c20, type: 3}
   m_Name: Gold
   m_EditorClassIdentifier: Assembly-CSharp::ResourceNodeData
-  maxAmount: 1000
+  maxAmount: 200
   harvestAmountPerAction: 100
   energyCostPerHarvest: 1
   harvestDuration: 3

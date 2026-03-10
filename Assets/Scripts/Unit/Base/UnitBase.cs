@@ -10,6 +10,10 @@ public abstract class UnitBase : MonoBehaviour
     [Header("유닛 데이터")]
     public UnitData data;
 
+    [Header("이펙트")]
+    [Tooltip("사망 시 생성할 먼지 파티클 프리팹")]
+    public GameObject dustEffectPrefab;
+
     // 상태 머신
     public UnitStateMachine StateMachine { get; private set; }
     public UnitState State => StateMachine.Current;
@@ -99,6 +103,9 @@ public abstract class UnitBase : MonoBehaviour
         StopMove();
         StateMachine.ChangeState(UnitState.Dead);
 
+        // 먼지 이펙트 생성
+        SpawnDustEffect();
+
         EventBus.Publish(new OnUnitDied { unit = this });
         EventBus.Publish(new OnScorePenalty
         {
@@ -107,6 +114,21 @@ public abstract class UnitBase : MonoBehaviour
         });
 
         OnDead();
+    }
+
+    // 사망 시 먼지 이펙트 스폰
+    private void SpawnDustEffect()
+    {
+        if (dustEffectPrefab == null) return;
+
+        var fx = Instantiate(dustEffectPrefab, transform.position, Quaternion.identity);
+
+        // ParticleSystem이 있으면 재생 후 자동 파괴
+        var ps = fx.GetComponent<ParticleSystem>();
+        if (ps != null)
+            Destroy(fx, ps.main.duration + ps.main.startLifetime.constantMax);
+        else
+            Destroy(fx, 2f);
     }
 
     // -------------------------------------------------------

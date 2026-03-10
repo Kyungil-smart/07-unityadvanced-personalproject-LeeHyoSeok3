@@ -50,6 +50,10 @@ public class PhaseManager : MonoBehaviour
         _currentPhase = PhaseType.Prepare;
 
         Debug.Log("[PhaseManager] 준비 페이즈 시작");
+
+        // 자원 노드 전체 재스폰
+        ResetAllResourceNodes();
+
         EventBus.Publish(new OnPhaseChanged { phase = PhaseType.Prepare });
     }
 
@@ -66,8 +70,57 @@ public class PhaseManager : MonoBehaviour
 
         _currentPhase = PhaseType.Combat;
 
+        // 워커 전원 사망 처리
+        KillAllWorkers();
+
+        // 생산 건물 유닛 스폰
+        SpawnAllProductionUnits();
+
         Debug.Log("[PhaseManager] 전투 페이즈 시작");
         EventBus.Publish(new OnPhaseChanged { phase = PhaseType.Combat });
+    }
+
+    // -------------------------------------------------------
+    // 페이즈 전환 보조 메서드
+    // -------------------------------------------------------
+
+    // Combat 진입 시 모든 워커 사망 처리
+    private void KillAllWorkers()
+    {
+        if (!ServiceLocator.Has<WorkerAssigner>()) return;
+
+        // 복사본으로 순회 (ForceKill → OnUnitDied → UnregisterWorker로 목록 변경됨)
+        var workersCopy = new System.Collections.Generic.List<WorkerUnit>(
+            ServiceLocator.Get<WorkerAssigner>().GetAllWorkers()
+        );
+
+        foreach (var worker in workersCopy)
+        {
+            if (worker != null && !worker.IsDead)
+                worker.ForceKill();
+        }
+
+        Debug.Log($"[PhaseManager] 워커 {workersCopy.Count}명 전투 페이즈 사망 처리");
+    }
+
+    // Combat 진입 시 모든 생산 건물에서 유닛 스폰
+    private void SpawnAllProductionUnits()
+    {
+        var buildings = Object.FindObjectsByType<ProductionBuilding>(FindObjectsSortMode.None);
+        foreach (var b in buildings)
+            b.SpawnUnits();
+
+        Debug.Log($"[PhaseManager] 생산 건물 {buildings.Length}개 유닛 스폰");
+    }
+
+    // Prepare 진입 시 자원 노드 전체 초기화
+    private void ResetAllResourceNodes()
+    {
+        var nodes = Object.FindObjectsByType<ResourceNode>(FindObjectsSortMode.None);
+        foreach (var node in nodes)
+            node.ResetNode();
+
+        Debug.Log($"[PhaseManager] 자원 노드 {nodes.Length}개 초기화");
     }
 
     // -------------------------------------------------------

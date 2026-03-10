@@ -52,6 +52,8 @@ public class BuildingConstruction : MonoBehaviour
 
         var worker = e.worker;
         if (worker == null) return;
+        // 실제로 Idle 상태인지 명시적으로 확인 (재귀 이벤트 등 오발 방지)
+        if (!worker.StateMachine.Is(UnitState.Idle)) return;
         // 수거 대기 중인 자원이 있는 워커는 제외
         if (worker.HasPendingDropped) return;
         if (worker.AssignedConstruction != null) return;
@@ -59,6 +61,14 @@ public class BuildingConstruction : MonoBehaviour
         _workerAssigned = true;
         Debug.Log($"[Construction] {worker.name} Idle 전환 → 즉시 건설 배정");
         worker.AssignConstruction(this);
+
+        // AssignConstruction 이후 워커가 실제로 Build_Move 상태인지 검증
+        // 배정이 실패했다면 _workerAssigned 플래그를 리셋해 재탐색 허용
+        if (!worker.StateMachine.Is(UnitState.Build_Move))
+        {
+            _workerAssigned = false;
+            Debug.LogWarning($"[Construction] {worker.name} 배정 후 Build_Move 진입 실패 → 재탐색 허용");
+        }
     }
 
     public Vector3 GetArrivalPosition(Vector3 workerPos)
@@ -123,6 +133,13 @@ public class BuildingConstruction : MonoBehaviour
         _workerAssigned = true;
         Debug.Log($"[Construction] 유휴 워커 발견 → {nearest.name} 배정");
         nearest.AssignConstruction(this);
+
+        // 배정 실패 시 플래그 리셋
+        if (!nearest.StateMachine.Is(UnitState.Build_Move))
+        {
+            _workerAssigned = false;
+            Debug.LogWarning($"[Construction] {nearest.name} 주기 배정 후 Build_Move 진입 실패 → 재탐색 허용");
+        }
     }
 
     public void NotifyTriggerEnter(WorkerUnit worker)

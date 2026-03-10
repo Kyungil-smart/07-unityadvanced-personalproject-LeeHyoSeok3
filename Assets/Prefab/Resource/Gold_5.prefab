@@ -174,7 +174,8 @@ MonoBehaviour:
     m_SubObjectType: 
     m_EditorAssetChanged: 0
   droppedResourcePrefab: {fileID: 7519775586659422552, guid: ab067f4db2af4244a9c449f8ebcc427f, type: 3}
-  depletedSprite: {fileID: 0}
+  depletedSprite: {fileID: 21300000, guid: 099a3e9fd39fd40efa61fb2fa8acf5f6, type: 3}
+  depletedColor: {r: 0.45, g: 0.45, b: 0.45, a: 1}
   mineParticle: {fileID: 0}
   mineAnimTrigger: Mine
   depleteAnimTrigger: Deplete

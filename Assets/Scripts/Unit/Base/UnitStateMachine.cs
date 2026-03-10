@@ -21,6 +21,8 @@ public enum UnitState
     Mining,         // 채광 중
     Hunting,        // 사냥 중
     HuntingIdle,    // 사냥 쿨타임 대기
+    Logging_Idle,   // 벌목 채집물 착지 대기 (DroppedResource 착지 전 임시 대기)
+    Mining_Idle,    // 채광 채집물 착지 대기 (DroppedResource 착지 전 임시 대기)
 
     // 자원 회수 이동
     Grab_Wood_Move, // 나무 들고 본진으로
