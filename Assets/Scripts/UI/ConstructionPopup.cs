@@ -46,6 +46,11 @@ public class ConstructionPopup : MonoBehaviour
 
     void OnDestroy()
     {
+        // 남아있는 엔트리 오브젝트 정리
+        foreach (var e in _entries)
+            if (e != null) Destroy(e);
+        _entries.Clear();
+
         if (PopupManager.Instance != null)
             PopupManager.Instance.Unregister(gameObject);
     }
@@ -131,16 +136,35 @@ public class ConstructionPopup : MonoBehaviour
 
     void Refresh()
     {
-        foreach (var e in _entries) Destroy(e);
-        _entries.Clear();
+        // 기존 엔트리 비활성화 (Destroy 대신 재사용)
+        foreach (var e in _entries)
+            if (e != null) e.SetActive(false);
 
+        int index = 0;
         foreach (var data in buildingList)
         {
             if (data == null) continue;
-            var go    = Instantiate(entryPrefab, entryContainer);
+
+            GameObject go;
+            if (index < _entries.Count && _entries[index] != null)
+            {
+                // 기존 오브젝트 재활성화
+                go = _entries[index];
+                go.SetActive(true);
+            }
+            else
+            {
+                // 부족하면 새로 생성
+                go = Instantiate(entryPrefab, entryContainer);
+                if (index < _entries.Count)
+                    _entries[index] = go;
+                else
+                    _entries.Add(go);
+            }
+
             var entry = go.GetComponent<BuildingEntryButton>();
             entry?.Init(data, this);
-            _entries.Add(go);
+            index++;
         }
     }
 

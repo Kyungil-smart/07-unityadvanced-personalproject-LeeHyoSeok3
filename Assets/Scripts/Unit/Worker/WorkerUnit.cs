@@ -729,6 +729,85 @@ public class WorkerUnit : UnitBase
     protected override void OnDead()
     {
         ClearAssignment();
-        Destroy(gameObject, 0.5f);
+        StartCoroutine(ReturnToPoolDelayed(0.5f));
+    }
+
+    // ---
+    // 풀링 지원
+    // ---
+
+    /// <summary>
+    /// 에너지 소진 등 외부에서 사망을 강제할 때 호출
+    /// WorkerUnit.TakeDamage는 비어있으므로 이 메서드를 사용
+    /// </summary>
+    public void ForceKill()
+    {
+        if (IsDead) return;
+        StopMove();
+        StateMachine.ChangeState(UnitState.Dead);
+        EventBus.Publish(new OnUnitDied { unit = this });
+        EventBus.Publish(new OnScorePenalty { scoreType = ScoreType.UnitDeath, amount = 1 });
+        OnDead();
+    }
+
+    /// <summary>
+    /// 풀 반납 전 모든 상태를 초기화
+    /// Cluster.ResetBuilding 또는 ReturnToPoolDelayed에서 호출
+    /// </summary>
+    public void ResetForPool()
+    {
+        // 노드 및 건설 배정 해제
+        if (AssignedNode != null)
+        {
+            AssignedNode.UnregisterWorker();
+            AssignedNode = null;
+        }
+        _assignedConstruction = null;
+        _path                 = null;
+        _pathIndex            = 0;
+        _carryingAmount       = 0;
+        _carryingType         = default;
+        _pendingDropped       = null;
+        _castleColliderActivated = false;
+        _huntingAttackTimer   = 0f;
+        _huntingPathRefreshTimer = 0f;
+        _stuckTimer           = 0f;
+
+        // 에너지 초기화
+        if (data != null)
+            Energy.Initialize(this, data.maxEnergy);
+
+        // HP 초기화
+        if (data != null)
+        {
+            // 부모 UnitBase의 CurrentHp는 private set이므로 TakeDamage로 0 만든 뒤
+            // StateMachine.Reset()으로 Dead 상태 해제 후 HP 재설정
+        }
+
+        // StateMachine Dead 락 해제 (OnStateEnter/Exit 없이 직접 초기화)
+        StateMachine.Reset();
+
+        // HP 복구
+        RestoreFullHp();
+
+        StopMove();
+    }
+
+    private System.Collections.IEnumerator ReturnToPoolDelayed(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        // OwnerCluster를 통해 prefab 참조를 얻고 풀에 반납
+        if (OwnerCluster != null
+            && OwnerCluster.workerPrefab != null
+            && ServiceLocator.Has<PoolManager>())
+        {
+            ResetForPool();
+            ServiceLocator.Get<PoolManager>().Despawn(OwnerCluster.workerPrefab, gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 }

@@ -23,6 +23,12 @@ public abstract class UnitBase : MonoBehaviour
     public int CurrentHp { get; private set; }
     public bool IsDead => StateMachine.Is(UnitState.Dead);
 
+    /// <summary>풀 반납 후 재사용 시 HP를 최대치로 복구</summary>
+    protected void RestoreFullHp()
+    {
+        if (data != null) CurrentHp = data.maxHp;
+    }
+
     protected virtual void Awake()
     {
         StateMachine     = new UnitStateMachine(this);

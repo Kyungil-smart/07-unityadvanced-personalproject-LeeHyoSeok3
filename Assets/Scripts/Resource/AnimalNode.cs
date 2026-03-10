@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 public class AnimalNode : ResourceNode
 {
@@ -316,20 +317,58 @@ public class AnimalNode : ResourceNode
 
     void SpawnDroppedOnDeath()
     {
-        if (droppedResourcePrefab == null)
+        var worker = _huntingWorker;
+        int amt    = harvestAmountPerAction;
+
+        // 어드레서블 참조 우선, 없으면 직접 참조 폴백
+        bool useAddressable = droppedResourceRef != null
+            && droppedResourceRef.RuntimeKeyIsValid()
+            && ServiceLocator.Has<PoolManager>();
+
+        if (useAddressable)
         {
-            _huntingWorker?.StartGrabMove(resourceType, harvestAmountPerAction);
+            ServiceLocator.Get<PoolManager>().SpawnAsync(
+                droppedResourceRef,
+                transform.position,
+                Quaternion.identity,
+                (go) => OnAnimalDroppedSpawned(go, worker, amt, null)
+            );
+        }
+        else if (droppedResourcePrefab != null)
+        {
+            GameObject go;
+            if (ServiceLocator.Has<PoolManager>())
+                go = ServiceLocator.Get<PoolManager>().Spawn(
+                        droppedResourcePrefab, transform.position, Quaternion.identity);
+            else
+                go = Instantiate(droppedResourcePrefab, transform.position, Quaternion.identity);
+
+            OnAnimalDroppedSpawned(go, worker, amt, droppedResourcePrefab);
+        }
+        else
+        {
+            worker?.StartGrabMove(resourceType, amt);
+        }
+    }
+
+    void OnAnimalDroppedSpawned(GameObject go, WorkerUnit worker, int amt, GameObject prefabKey)
+    {
+        if (go == null) { worker?.StartGrabMove(resourceType, amt); return; }
+
+        var dropped = go.GetComponent<DroppedResource>();
+        if (dropped == null)
+        {
+            if (prefabKey != null && ServiceLocator.Has<PoolManager>())
+                ServiceLocator.Get<PoolManager>().Despawn(prefabKey, go);
+            else
+                Destroy(go);
             return;
         }
 
-        var go      = Instantiate(droppedResourcePrefab, transform.position, Quaternion.identity);
-        var dropped = go.GetComponent<DroppedResource>();
-        if (dropped == null) { Destroy(go); return; }
-
-        dropped.resourceType = resourceType;
-        dropped.amount       = harvestAmountPerAction;
-        dropped.TryAssign(_huntingWorker);
-        _huntingWorker?.MoveToDropped(dropped);
+        dropped.sourcePrefab = prefabKey;
+        dropped.Initialize(resourceType, amt);
+        dropped.TryAssign(worker);
+        worker?.MoveToDropped(dropped);
     }
 
     protected override void OnWorkerRegistered()

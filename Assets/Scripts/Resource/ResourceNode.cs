@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 /// <summary>
 /// 맵에 배치되는 자원 노드 기반 클래스
@@ -18,7 +19,11 @@ public abstract class ResourceNode : MonoBehaviour
     public int currentAmount;
 
     [Header("채집 설정")]
-    [Tooltip("채집 완료 후 스폰할 DroppedResource 프리팹")]
+    [Tooltip("채집 완료 후 스폰할 DroppedResource 어드레서블 프리팹")]
+    public AssetReferenceGameObject droppedResourceRef;
+
+    // 어드레서블 로드 전 폴백용 직접 참조 (레거시 / 테스트용)
+    [Tooltip("어드레서블 미사용 시 직접 참조 (테스트/에디터용)")]
     public GameObject droppedResourcePrefab;
 
     // 밸런싱 값 프로퍼티 (_data 우선, 없으면 기본값 폴백)
@@ -109,25 +114,63 @@ public abstract class ResourceNode : MonoBehaviour
 
     void SpawnDroppedResource(WorkerUnit worker, int amount)
     {
-        if (droppedResourcePrefab == null)
+        // 어드레서블 참조 우선 사용, 없으면 직접 참조로 폴백
+        bool useAddressable = droppedResourceRef != null
+            && droppedResourceRef.RuntimeKeyIsValid()
+            && ServiceLocator.Has<PoolManager>();
+
+        if (useAddressable)
+        {
+            // 어드레서블 비동기 스폰
+            ServiceLocator.Get<PoolManager>().SpawnAsync(
+                droppedResourceRef,
+                transform.position,
+                Quaternion.identity,
+                (go) => OnDroppedSpawned(go, worker, amount, null)
+            );
+        }
+        else if (droppedResourcePrefab != null)
+        {
+            // 직접 참조 동기 스폰 (폴백)
+            GameObject go;
+            if (ServiceLocator.Has<PoolManager>())
+                go = ServiceLocator.Get<PoolManager>().Spawn(
+                        droppedResourcePrefab, transform.position, Quaternion.identity);
+            else
+                go = Instantiate(droppedResourcePrefab, transform.position, Quaternion.identity);
+
+            OnDroppedSpawned(go, worker, amount, droppedResourcePrefab);
+        }
+        else
         {
             // 프리팹 없으면 바로 본진으로 이동
+            worker.StartGrabMove(resourceType, amount);
+        }
+    }
+
+    void OnDroppedSpawned(GameObject go, WorkerUnit worker, int amount, GameObject prefabKey)
+    {
+        if (go == null)
+        {
             worker.StartGrabMove(resourceType, amount);
             return;
         }
 
-        var go      = Instantiate(droppedResourcePrefab, transform.position, Quaternion.identity);
         var dropped = go.GetComponent<DroppedResource>();
         if (dropped == null)
         {
             Debug.LogWarning("[ResourceNode] DroppedResource 컴포넌트 없음");
             worker.StartGrabMove(resourceType, amount);
-            Destroy(go);
+            if (prefabKey != null && ServiceLocator.Has<PoolManager>())
+                ServiceLocator.Get<PoolManager>().Despawn(prefabKey, go);
+            else
+                Destroy(go);
             return;
         }
 
-        dropped.resourceType = resourceType;
-        dropped.amount       = amount;
+        // 풀에서 꺼낸 오브젝트는 Start()가 다시 실행되지 않으므로 Initialize로 초기화
+        dropped.sourcePrefab = prefabKey;
+        dropped.Initialize(resourceType, amount);
         dropped.TryAssign(worker);
 
         // 워커가 채집물 위치로 이동
