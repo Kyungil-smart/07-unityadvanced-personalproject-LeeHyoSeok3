@@ -167,6 +167,12 @@ MonoBehaviour:
   _data: {fileID: 11400000, guid: 876834b43df701248bb322f3647e8385, type: 2}
   resourceType: 0
   currentAmount: 0
+  droppedResourceRef:
+    m_AssetGUID: ab067f4db2af4244a9c449f8ebcc427f
+    m_SubObjectName: 
+    m_SubObjectGUID: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
   droppedResourcePrefab: {fileID: 7519775586659422552, guid: ab067f4db2af4244a9c449f8ebcc427f, type: 3}
   depletedSprite: {fileID: 0}
   mineParticle: {fileID: 0}

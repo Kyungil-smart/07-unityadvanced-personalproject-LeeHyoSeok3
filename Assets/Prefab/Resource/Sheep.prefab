@@ -197,6 +197,12 @@ MonoBehaviour:
   _data: {fileID: 11400000, guid: 112f43100e8b96542974abaa816a64c3, type: 2}
   resourceType: 1
   currentAmount: 0
+  droppedResourceRef:
+    m_AssetGUID: bbf3565af1acc77439d274633c6a8b22
+    m_SubObjectName: 
+    m_SubObjectGUID: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
   droppedResourcePrefab: {fileID: 4761014708134887885, guid: bbf3565af1acc77439d274633c6a8b22, type: 3}
   flashColor: {r: 1, g: 0.57924527, b: 0.57924527, a: 1}
   flashDuration: 0.1
