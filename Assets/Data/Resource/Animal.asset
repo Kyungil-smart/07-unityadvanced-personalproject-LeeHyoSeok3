@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00840b3064469ea4d95af572c41b181a, type: 3}
   m_Name: Animal
   m_EditorClassIdentifier: Assembly-CSharp::AnimalNodeData
-  maxAmount: 100
-  harvestAmountPerAction: 10
-  energyCostPerHarvest: 10
+  maxAmount: 1
+  harvestAmountPerAction: 1
+  energyCostPerHarvest: 1
   harvestDuration: 3
   wanderRadius: 3
   wanderIntervalMin: 3
@@ -25,6 +25,6 @@ MonoBehaviour:
   grassIntervalMax: 12
   grassAnimDuration: 1.2
   huntDamage: 1
-  maxHp: 1
-  fleeSpeedMultiplier: 2.5
-  detectionRange: 3
+  maxHp: 3
+  fleeSpeedMultiplier: 1.5
+  detectionRange: 1

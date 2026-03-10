@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Tree
   m_EditorClassIdentifier: Assembly-CSharp::ResourceNodeData
   maxAmount: 100
-  harvestAmountPerAction: 10
-  energyCostPerHarvest: 10
+  harvestAmountPerAction: 100
+  energyCostPerHarvest: 1
   harvestDuration: 3

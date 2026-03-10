@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ResourceInventoryData
   initialWood: 1000
   initialGold: 1000
-  initialMeat: 3
+  initialMeat: 9
   meatCapacity: 10
