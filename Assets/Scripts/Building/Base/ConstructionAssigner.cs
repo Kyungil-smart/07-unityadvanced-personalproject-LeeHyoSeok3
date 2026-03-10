@@ -30,6 +30,8 @@ public class ConstructionAssigner : MonoBehaviour
             if (worker == null) continue;
             if (!worker.StateMachine.Is(UnitState.Idle)) continue;
             if (worker.AssignedConstruction != null) continue;
+            // 수거 대기 중인 자원이 있는 워커 제외
+            if (worker.HasPendingDropped) continue;
 
             float dist = Vector3.Distance(worker.transform.position, targetPos);
             if (dist < minDist)

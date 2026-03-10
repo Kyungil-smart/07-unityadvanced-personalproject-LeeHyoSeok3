@@ -33,6 +33,34 @@ public class BuildingConstruction : MonoBehaviour
         Debug.Log($"[Construction] {gameObject.name} 건설 대기 (워커 필요) 층:{floorIndex}");
     }
 
+    void OnEnable()
+    {
+        // 워커가 Idle 상태로 전환될 때 즉각 배정 시도
+        EventBus.Subscribe<OnWorkerBecameIdle>(OnWorkerBecameIdle);
+    }
+
+    void OnDisable()
+    {
+        EventBus.Unsubscribe<OnWorkerBecameIdle>(OnWorkerBecameIdle);
+    }
+
+    void OnWorkerBecameIdle(OnWorkerBecameIdle e)
+    {
+        // 이미 건설 진행 중이거나 완료, 또는 워커가 이미 배정된 경우 무시
+        if (IsBuilding || IsComplete) return;
+        if (_workerAssigned || _pendingWorker != null) return;
+
+        var worker = e.worker;
+        if (worker == null) return;
+        // 수거 대기 중인 자원이 있는 워커는 제외
+        if (worker.HasPendingDropped) return;
+        if (worker.AssignedConstruction != null) return;
+
+        _workerAssigned = true;
+        Debug.Log($"[Construction] {worker.name} Idle 전환 → 즉시 건설 배정");
+        worker.AssignConstruction(this);
+    }
+
     public Vector3 GetArrivalPosition(Vector3 workerPos)
     {
         PathfindingGrid grid = ServiceLocator.Has<PathfindingGrid>()
@@ -83,6 +111,8 @@ public class BuildingConstruction : MonoBehaviour
             if (!worker.StateMachine.Is(UnitState.Idle)) continue;
             // 이미 다른 건물에 배정된 워커 제외
             if (worker.AssignedConstruction != null) continue;
+            // 수거 대기 중인 자원이 있는 워커 제외
+            if (worker.HasPendingDropped) continue;
 
             float dist = Vector3.Distance(worker.transform.position, transform.position);
             if (dist < minDist) { minDist = dist; nearest = worker; }
