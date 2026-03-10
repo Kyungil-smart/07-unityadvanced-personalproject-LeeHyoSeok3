@@ -61,11 +61,11 @@ public class WorkerEnergy : MonoBehaviour
     // -------------------------------------------------------
     private void OnEnergyDepleted()
     {
-        Debug.Log($"[WorkerEnergy] {_owner.name} 에너지 소진 → 제거");
+        Debug.Log($"[WorkerEnergy] {_owner.name} 에너지 소진 → 사망 처리");
         EventBus.Publish(new OnWorkerEnergyDepleted { worker = _owner });
 
-        // 유닛 제거
-        Destroy(_owner.gameObject);
+        // 사망 처리 (풀 반납은 WorkerUnit.OnDead → ReturnToPoolDelayed 에서 수행)
+        _owner.ForceKill();
     }
 
     private void RefreshUI()

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 /// <summary>
 /// 집락 건물
@@ -12,6 +13,9 @@ using UnityEngine;
 public class Cluster : BuildingBase
 {
     [Header("집락 설정")]
+    [Tooltip("워커 어드레서블 프리팹 (우선 사용)")]
+    public AssetReferenceGameObject workerRef;
+    [Tooltip("어드레서블 미사용 시 직접 참조 (폴백/에디터용)")]
     public GameObject workerPrefab;
     [Tooltip("스폰할 워커 수 (기본 4)")]
     public int workerCount = 4;
@@ -49,21 +53,51 @@ public class Cluster : BuildingBase
 
     private void SpawnOneWorker()
     {
-        if (workerPrefab == null)
-        {
-            Debug.LogError($"[Cluster] {name} workerPrefab 없음!");
-            return;
-        }
-
         Vector3 spawnPos = GetRandomSpawnPosition();
 
-        var go     = Instantiate(workerPrefab, spawnPos, Quaternion.identity);
-        var worker = go.GetComponent<WorkerUnit>();
+        // 어드레서블 참조 우선 사용, 없으면 직접 참조 폴백
+        bool useAddressable = workerRef != null
+            && workerRef.RuntimeKeyIsValid()
+            && ServiceLocator.Has<PoolManager>();
 
+        if (useAddressable)
+        {
+            ServiceLocator.Get<PoolManager>().SpawnAsync(
+                workerRef,
+                spawnPos,
+                Quaternion.identity,
+                (go) => OnWorkerSpawned(go, null)
+            );
+        }
+        else if (workerPrefab != null)
+        {
+            // 직접 참조 동기 스폰 (폴백)
+            GameObject go;
+            if (ServiceLocator.Has<PoolManager>())
+                go = ServiceLocator.Get<PoolManager>().Spawn(workerPrefab, spawnPos, Quaternion.identity);
+            else
+                go = Instantiate(workerPrefab, spawnPos, Quaternion.identity);
+
+            OnWorkerSpawned(go, workerPrefab);
+        }
+        else
+        {
+            Debug.LogError($"[Cluster] {name} workerRef와 workerPrefab 모두 없음!");
+        }
+    }
+
+    void OnWorkerSpawned(GameObject go, GameObject prefabKey)
+    {
+        if (go == null) return;
+
+        var worker = go.GetComponent<WorkerUnit>();
         if (worker == null)
         {
-            Debug.LogError($"[Cluster] workerPrefab에 WorkerUnit 없음!");
-            Destroy(go);
+            Debug.LogError($"[Cluster] 워커 프리팹에 WorkerUnit 없음!");
+            if (prefabKey != null && ServiceLocator.Has<PoolManager>())
+                ServiceLocator.Get<PoolManager>().Despawn(prefabKey, go);
+            else
+                Destroy(go);
             return;
         }
 
@@ -73,7 +107,7 @@ public class Cluster : BuildingBase
         if (ServiceLocator.Has<WorkerAssigner>())
             ServiceLocator.Get<WorkerAssigner>().RegisterWorker(worker);
 
-        Debug.Log($"[Cluster] {name} → 워커 스폰 ({_workers.Count}/{workerCount}) at {spawnPos}");
+        Debug.Log($"[Cluster] {name} → 워커 스폰 ({_workers.Count}/{workerCount})");
     }
 
     private Vector3 GetRandomSpawnPosition()
@@ -122,7 +156,7 @@ public class Cluster : BuildingBase
     // -------------------------------------------------------
     public override void ResetBuilding()
     {
-        // 기존 워커 전체 제거
+        // 기존 워커 전체 풀 반납
         foreach (var worker in _workers)
         {
             if (worker == null) continue;
@@ -130,7 +164,19 @@ public class Cluster : BuildingBase
             if (ServiceLocator.Has<WorkerAssigner>())
                 ServiceLocator.Get<WorkerAssigner>().UnregisterWorker(worker);
 
-            Destroy(worker.gameObject);
+            // 상태 초기화 후 풀 반납
+            worker.ResetForPool();
+            if (ServiceLocator.Has<PoolManager>())
+            {
+                var pool = ServiceLocator.Get<PoolManager>();
+                // 어드레서블 키 우선, 없으면 직접 참조로 반납
+                if (workerRef != null && workerRef.RuntimeKeyIsValid())
+                    pool.DespawnByKey(workerRef.RuntimeKey.ToString(), worker.gameObject);
+                else
+                    pool.Despawn(workerPrefab, worker.gameObject);
+            }
+            else
+                Destroy(worker.gameObject);
         }
         _workers.Clear();
 

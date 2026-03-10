@@ -55,4 +55,15 @@ public class UnitStateMachine
 
     public bool Is(UnitState state)     => Current == state;
     public bool WasIn(UnitState state)  => Previous == state;
+
+    /// <summary>
+    /// 풀 반납 전 상태 초기화용
+    /// Dead 락을 우회하여 상태를 Idle로 직접 리셋
+    /// OnStateEnter/Exit 훅은 호출하지 않음
+    /// </summary>
+    public void Reset()
+    {
+        Previous = UnitState.Idle;
+        Current  = UnitState.Idle;
+    }
 }
