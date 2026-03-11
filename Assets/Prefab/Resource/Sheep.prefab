@@ -197,6 +197,9 @@ MonoBehaviour:
   _data: {fileID: 11400000, guid: 112f43100e8b96542974abaa816a64c3, type: 2}
   resourceType: 1
   currentAmount: 0
+  effectPrefab: {fileID: 8403296216218929358, guid: 52bf68d5aea7e6d42bc5293fe9d6166d, type: 3}
+  _effectCount: 3
+  _effectSpawnRadius: 0.3
   droppedResourceRef:
     m_AssetGUID: bbf3565af1acc77439d274633c6a8b22
     m_SubObjectName: 

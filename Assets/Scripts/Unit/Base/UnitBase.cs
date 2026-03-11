@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 /// <summary>
 /// 모든 유닛의 기반 클래스
@@ -11,8 +11,16 @@ public abstract class UnitBase : MonoBehaviour
     public UnitData data;
 
     [Header("이펙트")]
-    [Tooltip("사망 시 생성할 먼지 파티클 프리팹")]
-    public GameObject dustEffectPrefab;
+    [Tooltip("스폰/사망 시 생성할 이펙트 프리팹")]
+    public GameObject effectPrefab;
+    [Tooltip("이펙트 생성 개수")]
+    [SerializeField] private int _effectCount = 3;
+    [Tooltip("스프라이트 중심 기준 이펙트 산포 반지름")]
+    [SerializeField] private float _effectSpawnRadius = 0.3f;
+    [Tooltip("이펙트 랜덤 스케일 최솟값")]
+    [SerializeField] private float _effectScaleMin = 1f;
+    [Tooltip("이펙트 랜덤 스케일 최댓값")]
+    [SerializeField] private float _effectScaleMax = 1f;
 
     // 상태 머신
     public UnitStateMachine StateMachine { get; private set; }
@@ -26,6 +34,9 @@ public abstract class UnitBase : MonoBehaviour
     // HP
     public int CurrentHp { get; private set; }
     public bool IsDead => StateMachine.Is(UnitState.Dead);
+
+    // 풀링 재활성화 시 중복 스폰 방지용 플래그
+    private bool _initialized;
 
     /// <summary>풀 반납 후 재사용 시 HP를 최대치로 복구</summary>
     protected void RestoreFullHp()
@@ -49,8 +60,18 @@ public abstract class UnitBase : MonoBehaviour
 
     protected virtual void Start()
     {
+        _initialized = true;
         StateMachine.ChangeState(UnitState.Idle);
+        SpawnScatteredEffects(effectPrefab);
         EventBus.Publish(new OnUnitSpawned { unit = this });
+    }
+
+    // 풀에서 재활성화될 때 스폰 이펙트 재생
+    protected virtual void OnEnable()
+    {
+        // Start() 이전 초기화 단계(풀 워밍업 등)에서는 무시
+        if (!_initialized) return;
+        SpawnScatteredEffects(effectPrefab);
     }
 
     // -------------------------------------------------------
@@ -103,8 +124,7 @@ public abstract class UnitBase : MonoBehaviour
         StopMove();
         StateMachine.ChangeState(UnitState.Dead);
 
-        // 먼지 이펙트 생성
-        SpawnDustEffect();
+        SpawnScatteredEffects(effectPrefab);
 
         EventBus.Publish(new OnUnitDied { unit = this });
         EventBus.Publish(new OnScorePenalty
@@ -116,19 +136,22 @@ public abstract class UnitBase : MonoBehaviour
         OnDead();
     }
 
-    // 사망 시 먼지 이펙트 스폰
-    private void SpawnDustEffect()
+    // -------------------------------------------------------
+    // 이펙트 산포 생성
+    // -------------------------------------------------------
+
+    protected void SpawnScatteredEffects(GameObject prefab)
     {
-        if (dustEffectPrefab == null) return;
+        EffectSpawner.SpawnScattered(prefab, _spriteRenderer, transform.position, _effectCount, _effectSpawnRadius, _effectScaleMin, _effectScaleMax);
+    }
 
-        var fx = Instantiate(dustEffectPrefab, transform.position, Quaternion.identity);
+    void OnDrawGizmosSelected()
+    {
+        var sr     = GetComponent<SpriteRenderer>();
+        Vector3 center = (sr != null) ? sr.bounds.center : transform.position;
 
-        // ParticleSystem이 있으면 재생 후 자동 파괴
-        var ps = fx.GetComponent<ParticleSystem>();
-        if (ps != null)
-            Destroy(fx, ps.main.duration + ps.main.startLifetime.constantMax);
-        else
-            Destroy(fx, 2f);
+        Gizmos.color = Color.blue;
+        Gizmos.DrawWireSphere(center, _effectSpawnRadius);
     }
 
     // -------------------------------------------------------

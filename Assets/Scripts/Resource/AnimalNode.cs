@@ -304,6 +304,8 @@ public class AnimalNode : ResourceNode
 
         if (_rb != null) _rb.linearVelocity = Vector2.zero;
 
+        // 사망 이펙트 생성
+        SpawnDustEffect();
 
         // 채집 완료 → DroppedResource 스폰
         if (_huntingWorker != null)
@@ -313,6 +315,11 @@ public class AnimalNode : ResourceNode
         }
 
         OnNodeDepleted();
+    }
+
+    void SpawnDustEffect()
+    {
+        EffectSpawner.SpawnScattered(effectPrefab, _spriteRenderer, transform.position, _effectCount, _effectSpawnRadius, _effectScaleMin, _effectScaleMax);
     }
 
     void SpawnDroppedOnDeath()

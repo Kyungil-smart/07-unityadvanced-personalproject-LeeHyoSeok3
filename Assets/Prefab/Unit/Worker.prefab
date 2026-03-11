@@ -210,7 +210,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorkerUnit
   data: {fileID: 11400000, guid: 8d01859885e983e46b941682b3ab8359, type: 2}
+  spawnEffectPrefab: {fileID: 8403296216218929358, guid: 52bf68d5aea7e6d42bc5293fe9d6166d, type: 3}
+  dustEffectPrefab: {fileID: 8403296216218929358, guid: 52bf68d5aea7e6d42bc5293fe9d6166d, type: 3}
+  _effectCount: 3
+  _effectSpawnRadius: 0.3
   movingMass: 5
+  colliderActivationRange: 2
+  huntingAttackCooldown: 1.5
+  huntingAttackRange: 0.5
+  huntingPathRefreshInterval: 0.5
 --- !u!114 &560439949605824619
 MonoBehaviour:
   m_ObjectHideFlags: 0
