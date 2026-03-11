@@ -10,17 +10,8 @@ public abstract class UnitBase : MonoBehaviour
     [Header("유닛 데이터")]
     public UnitData data;
 
-    [Header("이펙트")]
-    [Tooltip("스폰/사망 시 생성할 이펙트 프리팹")]
-    public GameObject effectPrefab;
-    [Tooltip("이펙트 생성 개수")]
-    [SerializeField] private int _effectCount = 3;
-    [Tooltip("스프라이트 중심 기준 이펙트 산포 반지름")]
-    [SerializeField] private float _effectSpawnRadius = 0.3f;
-    [Tooltip("이펙트 랜덤 스케일 최솟값")]
-    [SerializeField] private float _effectScaleMin = 1f;
-    [Tooltip("이펙트 랜덤 스케일 최댓값")]
-    [SerializeField] private float _effectScaleMax = 1f;
+    // 같은 GameObject에 부착된 EffectSpawnController를 Awake에서 자동 참조
+    private EffectSpawnController _effectController;
 
     // 상태 머신
     public UnitStateMachine StateMachine { get; private set; }
@@ -46,10 +37,11 @@ public abstract class UnitBase : MonoBehaviour
 
     protected virtual void Awake()
     {
-        StateMachine     = new UnitStateMachine(this);
-        _rb              = GetComponent<Rigidbody2D>();
-        _animator        = GetComponent<Animator>();
-        _spriteRenderer  = GetComponent<SpriteRenderer>();
+        StateMachine      = new UnitStateMachine(this);
+        _rb               = GetComponent<Rigidbody2D>();
+        _animator         = GetComponent<Animator>();
+        _spriteRenderer   = GetComponent<SpriteRenderer>();
+        _effectController = GetComponent<EffectSpawnController>();
 
         _rb.gravityScale = 0f; // 2D 탑다운
         _rb.freezeRotation = true;
@@ -62,7 +54,7 @@ public abstract class UnitBase : MonoBehaviour
     {
         _initialized = true;
         StateMachine.ChangeState(UnitState.Idle);
-        SpawnScatteredEffects(effectPrefab);
+        _effectController?.Play();
         EventBus.Publish(new OnUnitSpawned { unit = this });
     }
 
@@ -71,7 +63,7 @@ public abstract class UnitBase : MonoBehaviour
     {
         // Start() 이전 초기화 단계(풀 워밍업 등)에서는 무시
         if (!_initialized) return;
-        SpawnScatteredEffects(effectPrefab);
+        _effectController?.Play();
     }
 
     // -------------------------------------------------------
@@ -124,7 +116,7 @@ public abstract class UnitBase : MonoBehaviour
         StopMove();
         StateMachine.ChangeState(UnitState.Dead);
 
-        SpawnScatteredEffects(effectPrefab);
+        _effectController?.Play();
 
         EventBus.Publish(new OnUnitDied { unit = this });
         EventBus.Publish(new OnScorePenalty
@@ -134,24 +126,6 @@ public abstract class UnitBase : MonoBehaviour
         });
 
         OnDead();
-    }
-
-    // -------------------------------------------------------
-    // 이펙트 산포 생성
-    // -------------------------------------------------------
-
-    protected void SpawnScatteredEffects(GameObject prefab)
-    {
-        EffectSpawner.SpawnScattered(prefab, _spriteRenderer, transform.position, _effectCount, _effectSpawnRadius, _effectScaleMin, _effectScaleMax);
-    }
-
-    void OnDrawGizmosSelected()
-    {
-        var sr     = GetComponent<SpriteRenderer>();
-        Vector3 center = (sr != null) ? sr.bounds.center : transform.position;
-
-        Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(center, _effectSpawnRadius);
     }
 
     // -------------------------------------------------------

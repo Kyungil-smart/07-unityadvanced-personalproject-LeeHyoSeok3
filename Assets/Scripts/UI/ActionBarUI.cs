@@ -103,7 +103,8 @@ public class ActionBarUI : MonoBehaviour
         if (ServiceLocator.Has<WorkerAssigner>())
         {
             foreach (var w in ServiceLocator.Get<WorkerAssigner>().GetAllWorkers())
-                if (w != null && w.AssignedNode is AnimalNode) activeHunters++;
+                // AssignedNode != null: Unity pseudo-null 체크로 이미 파괴된 AnimalNode 제외
+                if (w != null && w.AssignedNode is AnimalNode && w.AssignedNode != null) activeHunters++;
         }
 
         // 실질 여유량 = 총 적재량 - 현재 보유량 - (사냥 중 워커가 가져올 고기)
@@ -111,7 +112,9 @@ public class ActionBarUI : MonoBehaviour
                                  - activeHunters * harvestPerWorker;
         if (effectiveRemaining <= 0) return 0;
 
-        int byCapacity = effectiveRemaining / harvestPerWorker;
+        // 올림 나눗셈: 여유 공간이 수확량보다 적어도 워커 1명은 배정 가능
+        // (ResourceInventory.Add에서 초과분은 자동 클램핑)
+        int byCapacity = Mathf.CeilToInt((float)effectiveRemaining / harvestPerWorker);
         return Mathf.Min(byNode, byCapacity);
     }
 

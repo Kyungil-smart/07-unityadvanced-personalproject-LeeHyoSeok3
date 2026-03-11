@@ -18,17 +18,8 @@ public abstract class ResourceNode : MonoBehaviour
     public ResourceType resourceType;
     public int currentAmount;
 
-    [Header("이펙트")]
-    [Tooltip("자원 소진/사망 시 생성할 이펙트 프리팹")]
-    public GameObject effectPrefab;
-    [Tooltip("이펙트 생성 개수")]
-    [SerializeField] protected int _effectCount = 3;
-    [Tooltip("스프라이트 중심 기준 이펙트 산포 반지름")]
-    [SerializeField] protected float _effectSpawnRadius = 0.3f;
-    [Tooltip("이펙트 랜덤 스케일 최솟값")]
-    [SerializeField] protected float _effectScaleMin = 1f;
-    [Tooltip("이펙트 랜덤 스케일 최댓값")]
-    [SerializeField] protected float _effectScaleMax = 1f;
+    // 같은 GameObject에 부착된 EffectSpawnController를 Awake에서 자동 참조
+    protected EffectSpawnController _effectController;
 
     [Header("채집 설정")]
     [Tooltip("채집 완료 후 스폰할 DroppedResource 어드레서블 프리팹")]
@@ -54,9 +45,10 @@ public abstract class ResourceNode : MonoBehaviour
 
     protected virtual void Awake()
     {
-        currentAmount    = maxAmount;
-        _spriteRenderer  = GetComponent<SpriteRenderer>();
-        _animator        = GetComponent<Animator>();
+        currentAmount      = maxAmount;
+        _spriteRenderer    = GetComponent<SpriteRenderer>();
+        _animator          = GetComponent<Animator>();
+        _effectController  = GetComponent<EffectSpawnController>();
     }
 
     // -------------------------------------------------------
@@ -119,7 +111,7 @@ public abstract class ResourceNode : MonoBehaviour
 
         if (IsDeplete)
         {
-            EffectSpawner.SpawnScattered(effectPrefab, _spriteRenderer, transform.position, _effectCount, _effectSpawnRadius, _effectScaleMin, _effectScaleMax);
+            _effectController?.Play();
             OnNodeDepleted();
             Debug.Log($"[ResourceNode] {name} 자원 소진");
         }
@@ -202,15 +194,6 @@ public abstract class ResourceNode : MonoBehaviour
         _assignedWorker = null;
         gameObject.SetActive(true);
         OnNodeReset();
-    }
-
-    void OnDrawGizmosSelected()
-    {
-        var sr = GetComponent<SpriteRenderer>();
-        Vector3 center = (sr != null) ? sr.bounds.center : transform.position;
-
-        Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(center, _effectSpawnRadius);
     }
 
     // -------------------------------------------------------

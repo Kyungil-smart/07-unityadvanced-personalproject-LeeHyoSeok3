@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 5915261182664077134}
   - component: {fileID: 5253820829642494520}
   - component: {fileID: 273249643010784050}
+  - component: {fileID: 8202200633522133102}
   m_Layer: 0
   m_Name: Sheep
   m_TagString: Untagged
@@ -197,9 +198,6 @@ MonoBehaviour:
   _data: {fileID: 11400000, guid: 112f43100e8b96542974abaa816a64c3, type: 2}
   resourceType: 1
   currentAmount: 0
-  effectPrefab: {fileID: 8403296216218929358, guid: 52bf68d5aea7e6d42bc5293fe9d6166d, type: 3}
-  _effectCount: 3
-  _effectSpawnRadius: 0.3
   droppedResourceRef:
     m_AssetGUID: bbf3565af1acc77439d274633c6a8b22
     m_SubObjectName: 
@@ -246,3 +244,23 @@ MonoBehaviour:
   floor3Name: Elevated Ground_2
   stairName: Stair
   additionalOffsetY: 0
+--- !u!114 &8202200633522133102
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4968968569842217921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28b555d0712e3458eaa4b54c53c21c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EffectSpawnController
+  effectPrefab: {fileID: 8403296216218929358, guid: 52bf68d5aea7e6d42bc5293fe9d6166d, type: 3}
+  mode: 1
+  count: 3
+  interval: 0.1
+  radius: 0.3
+  scaleMin: 0.5
+  scaleMax: 1
+  playOnStart: 0

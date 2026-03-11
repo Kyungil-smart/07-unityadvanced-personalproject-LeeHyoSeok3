@@ -319,7 +319,7 @@ public class AnimalNode : ResourceNode
 
     void SpawnDustEffect()
     {
-        EffectSpawner.SpawnScattered(effectPrefab, _spriteRenderer, transform.position, _effectCount, _effectSpawnRadius, _effectScaleMin, _effectScaleMax);
+        _effectController?.Play();
     }
 
     void SpawnDroppedOnDeath()
