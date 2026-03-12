@@ -23,6 +23,7 @@ public class TreeFallEffect : MonoBehaviour
     // ---
 
     private SpriteRenderer        _spriteRenderer;
+    private SpriteRenderer        _visualRenderer;   // yOffset > 0일 때 생성되는 _Visual 자식 SR
     private EffectSpawnController _effectController;
     private Action                _onComplete;
 
@@ -64,6 +65,7 @@ public class TreeFallEffect : MonoBehaviour
                 sr.sprite         = cropped;
                 sr.sortingLayerID = source.sortingLayerID;
                 sr.sortingOrder   = source.sortingOrder + 1; // 밑동(원본) 위에 그려짐
+                _visualRenderer   = sr;                       // 이펙트 위치 계산용 참조 저장
             }
             else if (_spriteRenderer != null)
             {
@@ -81,6 +83,25 @@ public class TreeFallEffect : MonoBehaviour
     // -------------------------------------------------------
     // 내부
     // -------------------------------------------------------
+
+    /// <summary>
+    /// 쓰러진 나무의 스프라이트 중심을 월드 좌표로 반환
+    /// - yOffset > 0: 자식 _Visual SR의 sprite.bounds 기준
+    /// - 그 외: 루트 SR의 sprite.bounds 기준
+    /// - 모두 없으면 transform.position 폴백
+    /// </summary>
+    private Vector3 GetEffectPosition()
+    {
+        // yOffset > 0 경로: 실제 시각은 _Visual 자식에 있음
+        if (_visualRenderer != null && _visualRenderer.sprite != null)
+            return _visualRenderer.transform.TransformPoint(_visualRenderer.sprite.bounds.center);
+
+        // 루트 SR에 sprite가 설정된 경우
+        if (_spriteRenderer != null && _spriteRenderer.sprite != null)
+            return transform.TransformPoint(_spriteRenderer.sprite.bounds.center);
+
+        return transform.position;
+    }
 
     /// <summary>
     /// 원본 스프라이트의 하단을 bottomCropOffset 픽셀만큼 잘라낸 새 스프라이트 생성
@@ -142,8 +163,8 @@ public class TreeFallEffect : MonoBehaviour
         // 최종 각도 고정
         transform.rotation = Quaternion.Euler(0f, 0f, -90f * dir);
 
-        // 쓰러짐 완료 → 이펙트 발동
-        _effectController?.Play();
+        // 쓰러짐 완료 → 이펙트 발동 (회전 후 실제 스프라이트 중심 위치에 생성)
+        _effectController?.PlayAt(GetEffectPosition());
 
         // 완료 콜백 (SpriteRenderer 재활성화 등)
         _onComplete?.Invoke();

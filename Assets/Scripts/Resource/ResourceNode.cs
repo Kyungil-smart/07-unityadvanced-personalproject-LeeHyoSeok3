@@ -40,6 +40,9 @@ public abstract class ResourceNode : MonoBehaviour
     public  bool IsFull    => _assignedWorker != null;
     public  bool IsDeplete => currentAmount <= 0;
 
+    [Header("채집 파티클")]
+    [SerializeField] protected ParticleSystem _harvestParticle;
+
     protected SpriteRenderer _spriteRenderer;
     protected Animator _animator;
 
@@ -49,6 +52,23 @@ public abstract class ResourceNode : MonoBehaviour
         _spriteRenderer    = GetComponent<SpriteRenderer>();
         _animator          = GetComponent<Animator>();
         _effectController  = GetComponent<EffectSpawnController>();
+    }
+
+    // -------------------------------------------------------
+    // 워커 trigger 감지 → 채집 시작
+    // -------------------------------------------------------
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        var worker = other.GetComponent<WorkerUnit>();
+        if (worker == null) return;
+        if (worker.AssignedNode != this) return;
+
+        // 이 노드로 이동 중인 상태일 때만 처리 (채집물 수거 이동 중은 제외)
+        if (worker.State != UnitState.Logging_Move &&
+            worker.State != UnitState.Mining_Move) return;
+
+        // 이동 즉시 중단 → OnArrived()에서 Logging/Mining 상태로 전환
+        worker.ForceArrive();
     }
 
     // -------------------------------------------------------
@@ -194,6 +214,20 @@ public abstract class ResourceNode : MonoBehaviour
         _assignedWorker = null;
         gameObject.SetActive(true);
         OnNodeReset();
+    }
+
+    // -------------------------------------------------------
+    // 애니메이션 이벤트
+    // -------------------------------------------------------
+    /// <summary>
+    /// 채집 애니메이션 특정 프레임에서 호출 → 파티클 재생
+    /// Animation Event 함수명: PlayHarvestParticle
+    /// </summary>
+    public void PlayHarvestParticle()
+    {
+        if (_harvestParticle == null) return;
+        _harvestParticle.gameObject.SetActive(true);
+        _harvestParticle.Play();
     }
 
     // -------------------------------------------------------

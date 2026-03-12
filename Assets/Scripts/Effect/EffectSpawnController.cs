@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -25,9 +26,9 @@ public enum EffectSpawnMode
 /// </summary>
 public class EffectSpawnController : MonoBehaviour
 {
-    [Header("이펙트 프리팹")]
-    [Tooltip("생성할 이펙트 프리팹 (PooledEffect 컴포넌트 권장)")]
-    public GameObject effectPrefab;
+    [Header("이펙트 프리팹 목록")]
+    [Tooltip("생성할 이펙트 프리팹 리스트 — Play() 호출 시 랜덤으로 1개 선택 (PooledEffect 컴포넌트 권장)")]
+    public List<GameObject> effectPrefabs = new List<GameObject>();
 
     [Header("생성 모드")]
     [Tooltip("Burst: 즉시 count개 / Sequential: interval 간격으로 count개 / Continuous: 파괴 전까지 반복")]
@@ -100,9 +101,9 @@ public class EffectSpawnController : MonoBehaviour
     /// </summary>
     public EffectHandle Play()
     {
-        if (effectPrefab == null)
+        var selectedPrefab = PickRandomPrefab();
+        if (selectedPrefab == null)
         {
-            Debug.LogWarning($"[EffectSpawnController] {name}: effectPrefab 미설정");
             var empty = new EffectHandle();
             empty.Complete();
             return empty;
@@ -119,8 +120,55 @@ public class EffectSpawnController : MonoBehaviour
         // 이전 Continuous 중단 후 새 요청 전송
         _continuousHandle?.Stop();
 
-        var request = BuildRequest();
+        var request = BuildRequest(selectedPrefab);
         var handle  = ServiceLocator.Get<EffectManager>().Play(request);
+
+        if (mode == EffectSpawnMode.Continuous)
+            _continuousHandle = handle;
+
+        return handle;
+    }
+
+    /// <summary>
+    /// 지정한 월드 좌표에서 이펙트 생성.
+    /// SpriteRenderer bounds 대신 명시적 위치를 사용하므로 위치 오류 없음.
+    /// </summary>
+    public EffectHandle PlayAt(Vector3 worldPosition)
+    {
+        var selectedPrefab = PickRandomPrefab();
+        if (selectedPrefab == null)
+        {
+            var empty = new EffectHandle();
+            empty.Complete();
+            return empty;
+        }
+
+        if (!ServiceLocator.Has<EffectManager>())
+        {
+            Debug.LogWarning("[EffectSpawnController] EffectManager가 ServiceLocator에 없음");
+            var empty = new EffectHandle();
+            empty.Complete();
+            return empty;
+        }
+
+        _continuousHandle?.Stop();
+
+        // source/sourceRenderer를 null로 두어 capturedPosition만 사용하도록 함
+        var request = new EffectRequest
+        {
+            prefab           = selectedPrefab,
+            mode             = mode,
+            count            = count,
+            interval         = interval,
+            radius           = radius,
+            scaleMin         = scaleMin,
+            scaleMax         = scaleMax,
+            source           = null,
+            sourceRenderer   = null,
+            capturedPosition = worldPosition,
+        };
+
+        var handle = ServiceLocator.Get<EffectManager>().Play(request);
 
         if (mode == EffectSpawnMode.Continuous)
             _continuousHandle = handle;
@@ -139,9 +187,29 @@ public class EffectSpawnController : MonoBehaviour
     // 내부
     // -------------------------------------------------------
 
-    EffectRequest BuildRequest() => new EffectRequest
+    /// <summary>effectPrefabs 리스트에서 랜덤으로 1개 선택. 유효한 항목이 없으면 null 반환</summary>
+    GameObject PickRandomPrefab()
     {
-        prefab           = effectPrefab,
+        if (effectPrefabs == null || effectPrefabs.Count == 0)
+        {
+            Debug.LogWarning($"[EffectSpawnController] {name}: effectPrefabs 리스트가 비어있음");
+            return null;
+        }
+
+        // null 항목을 제외한 유효한 프리팹만 추려서 랜덤 선택
+        var valid = effectPrefabs.FindAll(p => p != null);
+        if (valid.Count == 0)
+        {
+            Debug.LogWarning($"[EffectSpawnController] {name}: effectPrefabs에 유효한 프리팹이 없음");
+            return null;
+        }
+
+        return valid[Random.Range(0, valid.Count)];
+    }
+
+    EffectRequest BuildRequest(GameObject prefab) => new EffectRequest
+    {
+        prefab           = prefab,
         mode             = mode,
         count            = count,
         interval         = interval,

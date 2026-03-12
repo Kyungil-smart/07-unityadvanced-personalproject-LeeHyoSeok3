@@ -18,6 +18,7 @@ GameObject:
   - component: {fileID: 560439949605824619}
   - component: {fileID: 3935898143207245745}
   - component: {fileID: 3904038002890291583}
+  - component: {fileID: -4714071133524093703}
   m_Layer: 0
   m_Name: Worker
   m_TagString: Untagged
@@ -210,10 +211,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorkerUnit
   data: {fileID: 11400000, guid: 8d01859885e983e46b941682b3ab8359, type: 2}
-  spawnEffectPrefab: {fileID: 8403296216218929358, guid: 52bf68d5aea7e6d42bc5293fe9d6166d, type: 3}
-  dustEffectPrefab: {fileID: 8403296216218929358, guid: 52bf68d5aea7e6d42bc5293fe9d6166d, type: 3}
-  _effectCount: 3
-  _effectSpawnRadius: 0.3
   movingMass: 5
   colliderActivationRange: 2
   huntingAttackCooldown: 1.5
@@ -265,3 +262,24 @@ MonoBehaviour:
   floor3Name: Elevated Ground_2
   stairName: Stair
   additionalOffsetY: 0
+--- !u!114 &-4714071133524093703
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2405097924649737950}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28b555d0712e3458eaa4b54c53c21c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EffectSpawnController
+  effectPrefabs:
+  - {fileID: 8403296216218929358, guid: d8139825c29366e469b5ede227949654, type: 3}
+  mode: 1
+  count: 3
+  interval: 0.05
+  radius: 0.52
+  scaleMin: 0.5
+  scaleMax: 1
+  playOnStart: 0

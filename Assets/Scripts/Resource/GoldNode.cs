@@ -12,9 +12,6 @@ public class GoldNode : ResourceNode
     [Tooltip("소진 시 적용할 색상 (어둡게)")]
     public Color depletedColor = new Color(0.45f, 0.45f, 0.45f, 1f);
 
-    [Header("채굴 파티클")]
-    public ParticleSystem mineParticle;
-
     [Header("애니메이션 트리거")]
     public string mineAnimTrigger    = "Mine";
     public string depleteAnimTrigger = "Deplete";
@@ -39,9 +36,6 @@ public class GoldNode : ResourceNode
     {
         if (_animator != null)
             _animator.SetTrigger(mineAnimTrigger);
-
-        if (mineParticle != null)
-            mineParticle.Play();
     }
 
     protected override void OnNodeDepleted()

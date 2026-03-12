@@ -107,11 +107,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EffectSpawnController
   effectPrefabs:
   - {fileID: 8403296216218929358, guid: 52bf68d5aea7e6d42bc5293fe9d6166d, type: 3}
-  mode: 0
+  - {fileID: 8403296216218929358, guid: d8139825c29366e469b5ede227949654, type: 3}
+  mode: 1
   count: 15
-  interval: 0
-  radius: 1
-  scaleMin: 1
+  interval: 0.02
+  radius: 0.8
+  scaleMin: 0.8
   scaleMax: 1
   playOnStart: 0
 --- !u!114 &1644749037875628723

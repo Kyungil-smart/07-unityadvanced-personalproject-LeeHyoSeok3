@@ -256,7 +256,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c28b555d0712e3458eaa4b54c53c21c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EffectSpawnController
-  effectPrefab: {fileID: 8403296216218929358, guid: 52bf68d5aea7e6d42bc5293fe9d6166d, type: 3}
+  effectPrefabs:
+  - {fileID: 8403296216218929358, guid: 52bf68d5aea7e6d42bc5293fe9d6166d, type: 3}
   mode: 1
   count: 3
   interval: 0.1

@@ -26,6 +26,8 @@ public class WorkerUnit : UnitBase
     private int                  _carryingAmount;
     private DroppedResource      _pendingDropped;
     private bool                 _castleColliderActivated;
+    private bool                 _droppedColliderActivated;
+    private bool                 _nodeColliderActivated;
 
     // 경로 이동
     private List<Vector3>        _path;
@@ -35,9 +37,9 @@ public class WorkerUnit : UnitBase
 
     // 이동 중 밀어내기
     private float                _defaultMass;
-    [SerializeField] private float movingMass              = 5f;
-    [SerializeField] private float colliderActivationRange  = 2f;
-    [SerializeField] private float huntingAttackCooldown    = 1.5f; // 공격 가능 주기 (초)
+    [SerializeField] private float movingMass                  = 5f;
+    [SerializeField] private int   remainingWaypointsThreshold = 3;  // 콜라이더 활성화까지 남은 웨이포인트 수
+    [SerializeField] private float huntingAttackCooldown       = 1.5f; // 공격 가능 주기 (초)
     [SerializeField] private float huntingAttackRange       = 0.5f; // 공격 사거리
     [SerializeField] private float huntingPathRefreshInterval = 0.5f; // 추적 경로 갱신 주기 (초)
 
@@ -178,9 +180,10 @@ public class WorkerUnit : UnitBase
             return;
         }
 
-        AssignedNode  = node;
-        _harvestTimer = 0f;
-        _carryingType = resourceType;
+        AssignedNode          = node;
+        _harvestTimer         = 0f;
+        _carryingType         = resourceType;
+        _nodeColliderActivated = false; // 새 노드 이동 시작 — 콜라이더 활성화 플래그 리셋
 
         UnitState moveState = resourceType switch
         {
@@ -253,23 +256,39 @@ public class WorkerUnit : UnitBase
             }
         }
 
-        // Grab_*_Move 중 Castle 근접 시 Collider 활성화
+        // Grab_*_Move 중 남은 웨이포인트 수 기준으로 Collider 활성화 → Castle trigger 감지
         if (!_castleColliderActivated &&
             (State == UnitState.Grab_Wood_Move ||
              State == UnitState.Grab_Gold_Move ||
-             State == UnitState.Grab_Meat_Move))
+             State == UnitState.Grab_Meat_Move) &&
+            _path != null && (_path.Count - _pathIndex) <= remainingWaypointsThreshold)
         {
-            var castle = ServiceLocator.Has<Castle>()
-                ? ServiceLocator.Get<Castle>()
-                : Object.FindFirstObjectByType<Castle>();
+            foreach (var col in GetComponents<Collider2D>())
+                col.enabled = true;
+            _castleColliderActivated = true;
+        }
 
-            if (castle != null &&
-                Vector3.Distance(transform.position, castle.GetPosition()) <= colliderActivationRange)
-            {
-                foreach (var col in GetComponents<Collider2D>())
-                    col.enabled = true;
-                _castleColliderActivated = true;
-            }
+        // *_Move 중 채집물로 이동 시 남은 웨이포인트 수 기준으로 Collider 활성화 → DroppedResource trigger 감지
+        if (!_droppedColliderActivated && _pendingDropped != null &&
+            (State == UnitState.Logging_Move ||
+             State == UnitState.Mining_Move  ||
+             State == UnitState.Hunting_Move) &&
+            _path != null && (_path.Count - _pathIndex) <= remainingWaypointsThreshold)
+        {
+            foreach (var col in GetComponents<Collider2D>())
+                col.enabled = true;
+            _droppedColliderActivated = true;
+        }
+
+        // *_Move 중 자원 노드로 이동 시 남은 웨이포인트 수 기준으로 Collider 활성화 → ResourceNode trigger 감지
+        if (!_nodeColliderActivated && _pendingDropped == null && AssignedNode != null &&
+            (State == UnitState.Logging_Move ||
+             State == UnitState.Mining_Move) &&
+            _path != null && (_path.Count - _pathIndex) <= remainingWaypointsThreshold)
+        {
+            foreach (var col in GetComponents<Collider2D>())
+                col.enabled = true;
+            _nodeColliderActivated = true;
         }
 
         if (_path == null || _path.Count == 0)
@@ -395,6 +414,7 @@ public class WorkerUnit : UnitBase
     /// <summary>자원 수집 완료 → 본진으로 이동 시작</summary>
     public void StartGrabMove(ResourceType type, int amount)
     {
+        _pendingDropped = null; // 채집물 수거 완료 — 이중 처리 방지
         _carryingType   = type;
         _carryingAmount = amount;
 
@@ -455,6 +475,8 @@ public class WorkerUnit : UnitBase
 
     void MoveToDroppedInternal(DroppedResource dropped)
     {
+        _droppedColliderActivated = false; // 새 이동 시작 — 콜라이더 활성화 플래그 리셋
+
         UnitState moveState = dropped.resourceType switch
         {
             ResourceType.Wood => UnitState.Logging_Move,
@@ -556,11 +578,20 @@ public class WorkerUnit : UnitBase
         AssignedNode = null;
     }
 
-    /// <summary>
-    /// Hunting 애니메이션 3번째 프레임에 Animation Event로 호출
-    /// Animator → Hunting 클립 → 3번째 프레임에 이벤트 추가
-    ///   Function: OnHuntingHit
-    /// </summary>
+    /// <summary>Animation Event - Logging 클립 타격 프레임에 연결</summary>
+    public void OnLoggingHit()
+    {
+        if (State != UnitState.Logging) return;
+        AssignedNode?.PlayHarvestParticle();
+    }
+
+    /// <summary>Animation Event - Mining 클립 타격 프레임에 연결</summary>
+    public void OnMiningHit()
+    {
+        if (State != UnitState.Mining) return;
+        AssignedNode?.PlayHarvestParticle();
+    }
+
     /// <summary>Animation Event - Hunting 클립 3번째 프레임에 연결</summary>
     public void OnHuntingHit()
     {
@@ -874,7 +905,9 @@ public class WorkerUnit : UnitBase
         _carryingAmount       = 0;
         _carryingType         = default;
         _pendingDropped       = null;
-        _castleColliderActivated = false;
+        _castleColliderActivated  = false;
+        _droppedColliderActivated = false;
+        _nodeColliderActivated    = false;
         _huntingAttackTimer   = 0f;
         _huntingPathRefreshTimer = 0f;
         _stuckTimer           = 0f;
