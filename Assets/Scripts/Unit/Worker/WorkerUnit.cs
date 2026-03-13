@@ -63,10 +63,13 @@ public class WorkerUnit : UnitBase
         _defaultMass = _rb.mass;
     }
 
+    // 일꾼 전용 데이터 캐스팅 (Inspector에서 WorkerData를 data 슬롯에 할당)
+    private WorkerData WorkerData => data as WorkerData;
+
     protected override void Start()
     {
-        if (data != null)
-            Energy.Initialize(this, data.maxEnergy);
+        if (WorkerData != null)
+            Energy.Initialize(this, WorkerData.maxEnergy);
         base.Start();
     }
 
@@ -913,8 +916,8 @@ public class WorkerUnit : UnitBase
         _stuckTimer           = 0f;
 
         // 에너지 초기화
-        if (data != null)
-            Energy.Initialize(this, data.maxEnergy);
+        if (WorkerData != null)
+            Energy.Initialize(this, WorkerData.maxEnergy);
 
         // HP 초기화
         if (data != null)

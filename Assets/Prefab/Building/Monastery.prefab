@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3530131682115332044}
   - component: {fileID: 1450752828950083610}
   - component: {fileID: -1346380516795887887}
+  - component: {fileID: -1165974582832669878}
   m_Layer: 17
   m_Name: Monastery
   m_TagString: Untagged
@@ -172,3 +173,18 @@ MonoBehaviour:
   floor3Name: Elevated Ground_2
   stairName: Stair
   additionalOffsetY: 0
+--- !u!114 &-1165974582832669878
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1670869000199785584}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b04633420ee2a8c488c80ceb19cdd29a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Monastery
+  data: {fileID: 11400000, guid: 277b000ae83d1284c9e9335f8131c89f, type: 2}
+  spawnPoint: {fileID: 0}
+  autoMoveToDefensePoint: 1

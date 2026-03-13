@@ -29,10 +29,11 @@ Transform:
   m_GameObject: {fileID: 3774349698868878340}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 9.44, y: 4.24, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 6015047940924691012}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &7405327008340410317
@@ -138,6 +139,7 @@ MonoBehaviour:
     m_SubObjectType: 
     m_EditorAssetChanged: 0
   droppedResourcePrefab: {fileID: 629410107844139497, guid: ce3e9e6ebb037bd499afd8914bf35be9, type: 3}
+  _harvestParticle: {fileID: 5884182856564534514}
   stageSprites: []
   fallEffectPrefab: {fileID: 1644749037875628723, guid: 833193b24d0c21d4183c0638664cdedf, type: 3}
   bottomCropOffset: 45
@@ -188,3 +190,70 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1.21, y: 0.53}
   m_EdgeRadius: 0
+--- !u!1001 &1708260041642094236
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 6822633962299540619}
+    m_Modifications:
+    - target: {fileID: 4957701566268243160, guid: c0a5b5c22908d324788d423c1ca06593, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4957701566268243160, guid: c0a5b5c22908d324788d423c1ca06593, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4957701566268243160, guid: c0a5b5c22908d324788d423c1ca06593, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4957701566268243160, guid: c0a5b5c22908d324788d423c1ca06593, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4957701566268243160, guid: c0a5b5c22908d324788d423c1ca06593, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4957701566268243160, guid: c0a5b5c22908d324788d423c1ca06593, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4957701566268243160, guid: c0a5b5c22908d324788d423c1ca06593, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4957701566268243160, guid: c0a5b5c22908d324788d423c1ca06593, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4957701566268243160, guid: c0a5b5c22908d324788d423c1ca06593, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4957701566268243160, guid: c0a5b5c22908d324788d423c1ca06593, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4961104290796774128, guid: c0a5b5c22908d324788d423c1ca06593, type: 3}
+      propertyPath: m_Name
+      value: "Wood \u0441hopping"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c0a5b5c22908d324788d423c1ca06593, type: 3}
+--- !u!198 &5884182856564534514 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 5051952828837970542, guid: c0a5b5c22908d324788d423c1ca06593, type: 3}
+  m_PrefabInstance: {fileID: 1708260041642094236}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &6015047940924691012 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4957701566268243160, guid: c0a5b5c22908d324788d423c1ca06593, type: 3}
+  m_PrefabInstance: {fileID: 1708260041642094236}
+  m_PrefabAsset: {fileID: 0}

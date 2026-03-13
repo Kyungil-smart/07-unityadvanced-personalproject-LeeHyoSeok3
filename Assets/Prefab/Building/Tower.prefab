@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3530131682115332044}
   - component: {fileID: 1450752828950083610}
   - component: {fileID: -1346380516795887887}
+  - component: {fileID: -982233190817985478}
   m_Layer: 17
   m_Name: Tower
   m_TagString: Untagged
@@ -172,3 +173,18 @@ MonoBehaviour:
   floor3Name: Elevated Ground_2
   stairName: Stair
   additionalOffsetY: 0
+--- !u!114 &-982233190817985478
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1670869000199785584}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e57d9f6b62524049a2d3e72bedda06d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Tower
+  data: {fileID: 11400000, guid: fac3a8b76db39a84e82d05f4468cc3dd, type: 2}
+  spawnPoint: {fileID: 0}
+  autoMoveToDefensePoint: 1

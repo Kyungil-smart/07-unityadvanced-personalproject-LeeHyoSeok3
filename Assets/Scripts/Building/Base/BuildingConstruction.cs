@@ -253,21 +253,6 @@ public class BuildingConstruction : MonoBehaviour
         }
     }
 
-    void OnGUI()
-    {
-        if (Camera.main == null) return;
-        Vector3 screenPos = Camera.main.WorldToScreenPoint(transform.position);
-        if (screenPos.z < 0) return;
-
-        float x = screenPos.x - 35f;
-        float y = Screen.height - screenPos.y - 55f;
-
-        GUI.color = IsBuilding ? Color.yellow : Color.cyan;
-        GUI.Label(new Rect(x, y, 120f, 20f),
-            IsBuilding ? $"건설 중 {Progress * 100f:F0}%" : "워커 대기 중");
-        GUI.color = Color.white;
-    }
-
     private void SetColor(Color color)
     {
         if (_renderers == null) return;

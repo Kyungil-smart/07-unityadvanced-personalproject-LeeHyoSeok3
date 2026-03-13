@@ -56,7 +56,7 @@ public class ProductionBuilding : BuildingBase
 
             if (unit == null) continue;
 
-            // 방어 지점으로 자동 이동 // todo 나중에 유닛 생성 쪽 작성하면 주석해제하기
+            // 방어 지점으로 자동 이동 (DefensePointManager 구현 후 활성화)
             // if (autoMoveToDefensePoint && ServiceLocator.Has<DefensePointManager>())
             // {
             //     var defPoint = ServiceLocator.Get<DefensePointManager>().CurrentDefensePoint;

@@ -9,15 +9,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1290160dbfb49a686ba28d1684ad6f3, type: 3}
+  m_Script: {fileID: 11500000, guid: d52ffd35ae0a26240984bc1df5ba31c0, type: 3}
   m_Name: WorkerData
-  m_EditorClassIdentifier: Assembly-CSharp::UnitData
-  unitName: Unit
+  m_EditorClassIdentifier: Assembly-CSharp::WorkerData
+  unitName: Worker
   icon: {fileID: -5948806968594788206, guid: 4c87a6310f87c47f1b785669e6191f00, type: 3}
   maxHp: 100
   moveSpeed: 3
-  maxEnergy: 20
-  harvestCooldown: 1.5
   woodCost: 0
   meatCost: 0
   goldCost: 0
+  maxEnergy: 100
+  harvestCooldown: 1.5

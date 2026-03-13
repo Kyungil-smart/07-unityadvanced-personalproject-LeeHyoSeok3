@@ -23,6 +23,6 @@ MonoBehaviour:
   buildTime: 5
   maintenanceGold: 0
   maintenanceMeat: 0
-  unitPrefab: {fileID: 0}
-  spawnCountPerWave: 0
+  unitPrefab: {fileID: 1260619671990291459, guid: e517a282b3e2bbd47b5fd2ad27f5fc7f, type: 3}
+  spawnCountPerWave: 4
   maxHp: 200

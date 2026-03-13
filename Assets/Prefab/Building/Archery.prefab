@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3530131682115332044}
   - component: {fileID: 1450752828950083610}
   - component: {fileID: -1346380516795887887}
+  - component: {fileID: -2122961715279163186}
   m_Layer: 17
   m_Name: Archery
   m_TagString: Untagged
@@ -172,3 +173,18 @@ MonoBehaviour:
   floor3Name: Elevated Ground_2
   stairName: Stair
   additionalOffsetY: 0
+--- !u!114 &-2122961715279163186
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1670869000199785584}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1759964848162b4e9b011f5ca0b9929, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Archery
+  data: {fileID: 11400000, guid: d3c68f4569fe6a14a930aa58313a23ad, type: 2}
+  spawnPoint: {fileID: 0}
+  autoMoveToDefensePoint: 1
