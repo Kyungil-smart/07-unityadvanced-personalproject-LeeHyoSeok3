@@ -869,7 +869,7 @@ public class WorkerUnit : UnitBase
     protected override void OnDead()
     {
         ClearAssignment();
-        StartCoroutine(ReturnToPoolDelayed(0.5f));
+        ReturnToPool();
     }
 
     // ---
@@ -885,6 +885,7 @@ public class WorkerUnit : UnitBase
         if (IsDead) return;
         StopMove();
         StateMachine.ChangeState(UnitState.Dead);
+        PlayDeathEffect(); // 사망 이펙트 재생
         EventBus.Publish(new OnUnitDied { unit = this });
         EventBus.Publish(new OnScorePenalty { scoreType = ScoreType.UnitDeath, amount = 1 });
         OnDead();
@@ -935,11 +936,9 @@ public class WorkerUnit : UnitBase
         StopMove();
     }
 
-    private System.Collections.IEnumerator ReturnToPoolDelayed(float delay)
+    void ReturnToPool()
     {
-        yield return new WaitForSeconds(delay);
-
-        // OwnerCluster를 통해 prefab 참조를 얻고 풀에 반납
+        // OwnerCluster를 통해 prefab 참조를 얻고 풀에 즉시 반납
         if (OwnerCluster != null
             && OwnerCluster.workerPrefab != null
             && ServiceLocator.Has<PoolManager>())

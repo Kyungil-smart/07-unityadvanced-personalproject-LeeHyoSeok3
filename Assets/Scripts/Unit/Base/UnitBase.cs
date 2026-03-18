@@ -129,6 +129,12 @@ public abstract class UnitBase : MonoBehaviour
     }
 
     // -------------------------------------------------------
+    // 이펙트 헬퍼
+    // -------------------------------------------------------
+    /// <summary>하위 클래스에서 사망 이펙트를 직접 재생할 때 사용</summary>
+    protected void PlayDeathEffect() => _effectController?.Play();
+
+    // -------------------------------------------------------
     // 상태 머신 훅 (하위 클래스에서 오버라이드)
     // -------------------------------------------------------
     public virtual void OnStateEnter(UnitState state) { }
